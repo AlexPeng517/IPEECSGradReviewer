@@ -1,6 +1,9 @@
 import React from 'react';
 import logo from './logo.svg';
+import FetchGradeTable from './FetchGradeTable';
 import './App.css';
+import SelectGradReviewRule from './SelectGradReviewRule';
+
 
 function App() {
   return (
@@ -18,6 +21,8 @@ function App() {
         >
           Learn React
         </a>
+        <FetchGradeTable/>
+        <SelectGradReviewRule/>
       </header>
     </div>
   );
