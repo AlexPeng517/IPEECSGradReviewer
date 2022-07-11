@@ -1,4 +1,6 @@
 import React, { useEffect } from "react";
+import { Buffer } from "buffer";
+const iconv = require("iconv-lite");
 
 function FetchGradeTable() {
   const [fetchingState, setfetchingState] = React.useState("fetching");
@@ -22,6 +24,7 @@ function FetchGradeTable() {
       "https://cis.ncu.edu.tw/ScoreInquiries/student/student_record.php";
     const headers = new Headers();
     headers.append("Cookie", cookieHeader);
+    headers.append("Content-Type", "text/html;charset=big5");
 
     const reqParams: RequestInit = {
       method: "GET",
@@ -31,12 +34,19 @@ function FetchGradeTable() {
     };
     const getHtmlAsync = async (url: string, reqParams: RequestInit) => {
       console.log("Getting students grade records");
-      let response = await fetch(url, reqParams);
-      let htmlString = await response.text();
+      let htmlString = await fetch(url, reqParams)
+        .then(function (response) {
+          return response.arrayBuffer();
+        })
+        .then(function (buf) {
+          return iconv.decode(Buffer.from(buf), "big5");
+        });
+
       let parser = new DOMParser();
       let parsed = parser.parseFromString(htmlString, "text/html");
       return parsed;
     };
+
     getHtmlAsync(url, reqParams).then((parsed) => {
       gradeTable = parsed.querySelectorAll(".list1");
 
@@ -59,15 +69,23 @@ function FetchGradeTable() {
 
       // 去除重複課號
       const flags = new Set();
-      newTable = newTable.filter((course) => {
-        if (flags.has(course[2])) {
-          return false;
+      let checkTable: any[] = [];
+      newTable.forEach((course) => {
+        if (
+          flags.has(course[2]) ||
+          !course[2] ||
+          Number(course[4]) < 60 ||
+          course[4] === "停修"
+        ) {
+          return;
         }
         flags.add(course[2]);
+        checkTable.push({ name: course[2], credits: course[3] });
         return true;
       });
-      // 會多一個怪怪的東西
-      console.log(newTable);
+      console.log("get 到的資料", newTable);
+      console.log("課號交集", flags);
+      console.log("用來審核的資料", checkTable);
 
       // console.log(gradeTable);
       setfetchingState("done");
