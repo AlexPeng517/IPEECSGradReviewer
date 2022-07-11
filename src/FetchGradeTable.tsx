@@ -24,7 +24,6 @@ function FetchGradeTable() {
       "https://cis.ncu.edu.tw/ScoreInquiries/student/student_record.php";
     const headers = new Headers();
     headers.append("Cookie", cookieHeader);
-    headers.append("Content-Type", "text/html;charset=big5");
 
     const reqParams: RequestInit = {
       method: "GET",
