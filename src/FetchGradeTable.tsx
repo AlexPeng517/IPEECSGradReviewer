@@ -1,9 +1,11 @@
 import React, { useEffect } from "react";
 import { Buffer } from "buffer";
+import SelectGradReviewRule from "./SelectGradReviewRule";
 const iconv = require("iconv-lite");
 
 function FetchGradeTable() {
-  const [fetchingState, setfetchingState] = React.useState("fetching");
+  let checkTable: any[] = [];
+  const [fetchingState, setfetchingState] = React.useState("fetching course table...");
   useEffect(() => {
     chrome.cookies.getAll({ url: "https://cis.ncu.edu.tw" }, callback);
     console.log("get cookies");
@@ -68,7 +70,6 @@ function FetchGradeTable() {
 
       // 去除重複課號
       const flags = new Set();
-      let checkTable: any[] = [];
       newTable.forEach((course) => {
         if (
           flags.has(course[2]) ||
@@ -93,6 +94,7 @@ function FetchGradeTable() {
   return (
     <div>
       <h1>{fetchingState}</h1>
+      <SelectGradReviewRule checkTable={checkTable} />
     </div>
   );
 }
