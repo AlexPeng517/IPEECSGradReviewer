@@ -1,10 +1,13 @@
 import React, { useEffect } from "react";
 import { Buffer } from "buffer";
 import SelectGradReviewRule from "./SelectGradReviewRule";
-const iconv = require("iconv-lite");
 
+export const CheckTableContext = React.createContext({});
+export const CheckTableContextProvider = CheckTableContext.Provider;
+
+const iconv = require("iconv-lite");
+let checkTable: any[] = [];
 function FetchGradeTable() {
-  let checkTable: any[] = [];
   const [fetchingState, setfetchingState] = React.useState("fetching course table...");
   useEffect(() => {
     chrome.cookies.getAll({ url: "https://cis.ncu.edu.tw" }, callback);
@@ -94,7 +97,9 @@ function FetchGradeTable() {
   return (
     <div>
       <h1>{fetchingState}</h1>
-      <SelectGradReviewRule checkTable={checkTable} />
+      <CheckTableContextProvider value={{ checkTable }}>
+        {fetchingState =="done" && <SelectGradReviewRule/>}
+      </CheckTableContextProvider>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { render } from "@testing-library/react";
 import React, { useEffect } from "react";
+import {CheckTableContext} from "./FetchGradeTable"
 
 export interface CategoryCourses {
   [key: string]: Array<string>;
@@ -20,6 +21,7 @@ function getAllCategoryCourse(obj: any, data: any) {
   // 抓出所有創意與創業課程
   // 但有些課程可互相抵修的應該不能個別算學分
   let checkedRule = new Set();
+  console.log("data: ",data)
   data.forEach((course: any) => {
     obj["規則"].forEach((rule: any) => {
       rule[2].forEach((r: any) => {
@@ -79,7 +81,10 @@ function validateCourses(obj: { 課程: any; 學分: any; 規則: any }) {
 
 function clearCourses(obj: any, data: any) {
   let arr = Object.values(obj);
+  data = Object.values(data);
   arr.forEach((category: any) => {
+    console.log("clear course data: ",data);
+    console.log("clear course category: ",category);
     data = data.filter((course: any) => {
       return !category.includes(course.name);
     });
@@ -99,9 +104,11 @@ function checkTotalCredits(checkTableData: any) {
 }
 
 // check creative-and-startup credits
-function checkCreativeAndStartupCredits(data: any, rules: any) {
+function checkCreativeAndStartupCredits(data: any, rules: {[key: string]:any}) {
   console.log("check creative-and-startup credits");
-  let creativeAndStartupRules = rules["創意與創業學分學程"];
+  console.log(rules);
+  console.log("data in check creative",data);
+  let creativeAndStartupRules = rules["rule"]["創意與創業學分學程"];
   console.log(creativeAndStartupRules);
 
   let [categoryCourses, categoryCredits] = getAllCategoryCourse(
@@ -130,8 +137,8 @@ function checkCreativeAndStartupCredits(data: any, rules: any) {
 }
 
 // check school-required credits 非重複計算
-function checkSchoolRequiredCredits(data: any, rules: any) {
-  let schoolRequiredRules = rules["校訂必修"];
+function checkSchoolRequiredCredits(data: any, rules: {[key: string]:any}) {
+  let schoolRequiredRules = rules["rule"]["校訂必修"];
   console.log(schoolRequiredRules);
 
   let [categoryCourses, categoryCredits] = getAllCategoryCourse(
@@ -183,8 +190,8 @@ function checkSchoolRequiredCredits(data: any, rules: any) {
 }
 
 // check academy-required credits 非重複計算
-function checkAcademyRequiredCredits(data: any, rules: any) {
-  let academyRequiredRules = rules["院訂必修"];
+function checkAcademyRequiredCredits(data: any, rules: {[key: string]:any}) {
+  let academyRequiredRules = rules["rule"]["院訂必修"];
   console.log(academyRequiredRules);
 
   let [categoryCourses, categoryCredits] = getAllCategoryCourse(
@@ -215,8 +222,8 @@ function checkAcademyRequiredCredits(data: any, rules: any) {
 }
 
 // check academy-elective credits
-function checkAcademyElectiveCredits(data: any, rules: any) {
-  let academyElectiveRules = rules["院訂必選"];
+function checkAcademyElectiveCredits(data: any, rules: {[key: string]:any}) {
+  let academyElectiveRules = rules["rule"]["院訂必選"];
   console.log(academyElectiveRules);
 
   let [categoryCourses, categoryCredits] = getAllCategoryCourse(
@@ -245,8 +252,8 @@ function checkAcademyElectiveCredits(data: any, rules: any) {
 }
 
 // check english-required credits
-function checkEnglishRequiredCredits(data: any, rules: any) {
-  let englishElectiveRules = rules["英文必選"];
+function checkEnglishRequiredCredits(data: any, rules: {[key: string]:any}) {
+  let englishElectiveRules = rules["rule"]["英文必選"];
   console.log(englishElectiveRules);
 
   let [categoryCourses, categoryCredits] = getAllCategoryCourse(
@@ -278,14 +285,14 @@ function checkEnglishRequiredCredits(data: any, rules: any) {
 
 // CS-major
 // check CS-major credits
-function checkCSMajorCredits(data: any, rules: any) {
+function checkCSMajorCredits(data: any, rules: {[key: string]:any}) {
   data = checkCSMajorRequiredCredits(data, rules);
   checkCSMajorElectiveCredits(data, rules);
 }
 
 // check CS-major-required credits
-function checkCSMajorRequiredCredits(data: any, rules: any) {
-  let CSMajorRequiredRules = [rules["資工專長"][0]];
+function checkCSMajorRequiredCredits(data: any, rules: {[key: string]:any}) {
+  let CSMajorRequiredRules = [rules["rule"]["資工專長"][0]];
 
   console.log(CSMajorRequiredRules);
 
@@ -317,8 +324,8 @@ function checkCSMajorRequiredCredits(data: any, rules: any) {
 }
 
 // check CS-major-elective credits
-function checkCSMajorElectiveCredits(data: any, rules: any) {
-  let CSMajorElectiveRules = [rules["資工專長"][1]];
+function checkCSMajorElectiveCredits(data: any, rules: {[key: string]:any}) {
+  let CSMajorElectiveRules = [rules["rule"]["資工專長"][1]];
 
   console.log(CSMajorElectiveRules);
 
@@ -349,14 +356,14 @@ function checkCSMajorElectiveCredits(data: any, rules: any) {
 
 // network-major
 // check network-major credits
-function checkNetworkMajorCredits(data: any, rules: any) {
+function checkNetworkMajorCredits(data: any, rules: {[key: string]:any}) {
   data = checkNetworkMajorRequiredCredits(data, rules);
   checkNetworkMajorElectiveCredits(data, rules);
 }
 
 // check network-major-required credits
-function checkNetworkMajorRequiredCredits(data: any, rules: any) {
-  let networkMajorRequiredRules = [rules["網路專長"][0]];
+function checkNetworkMajorRequiredCredits(data: any, rules: {[key: string]:any}) {
+  let networkMajorRequiredRules = [rules["rule"]["網路專長"][0]];
 
   console.log(networkMajorRequiredRules);
 
@@ -388,8 +395,8 @@ function checkNetworkMajorRequiredCredits(data: any, rules: any) {
 }
 
 // check network-major-elective credits
-function checkNetworkMajorElectiveCredits(data: any, rules: any) {
-  let networkMajorElectiveRules = [rules["網路專長"][1]];
+function checkNetworkMajorElectiveCredits(data: any, rules: {[key: string]:any}) {
+  let networkMajorElectiveRules = [rules["rule"]["網路專長"][1]];
 
   console.log(networkMajorElectiveRules);
 
@@ -420,14 +427,14 @@ function checkNetworkMajorElectiveCredits(data: any, rules: any) {
 
 // CO-major
 // check CO-major credits
-function checkCOMajorCredits(data: any, rules: any) {
+function checkCOMajorCredits(data: any, rules: {[key: string]:any}) {
   data = checkCOMajorRequiredCredits(data, rules);
   checkCOMajorElectiveCredits(data, rules);
 }
 
 // check CO-major-required credits
-function checkCOMajorRequiredCredits(data: any, rules: any) {
-  let COMajorRequiredRules = [rules["通訊專長"][0], rules["通訊專長"][1]];
+function checkCOMajorRequiredCredits(data: any, rules: {[key: string]:any}) {
+  let COMajorRequiredRules = [rules["rule"]["通訊專長"][0], rules["rule"]["通訊專長"][1]];
 
   console.log(COMajorRequiredRules);
 
@@ -459,8 +466,8 @@ function checkCOMajorRequiredCredits(data: any, rules: any) {
 }
 
 // check CO-major-elective credits
-function checkCOMajorElectiveCredits(data: any, rules: any) {
-  let COMajorElectiveRules = [rules["通訊專長"][2]];
+function checkCOMajorElectiveCredits(data: any, rules: {[key: string]:any}) {
+  let COMajorElectiveRules = [rules["rule"]["通訊專長"][2]];
 
   console.log(COMajorElectiveRules);
 
@@ -491,7 +498,7 @@ function checkCOMajorElectiveCredits(data: any, rules: any) {
 
 // EE-major
 // check EE-major credits
-function checkEEMajorCredits(data: any, rules: any) {
+function checkEEMajorCredits(data: any, rules: {[key: string]:any}) {
   data = checkEEMajorRequiredCredits(data, rules);
   data = checkEEMajorExperienceCredits(data, rules);
   data = checkEEMajorMarkCourseCredits(data, rules);
@@ -499,8 +506,8 @@ function checkEEMajorCredits(data: any, rules: any) {
 }
 
 // check EE-major-required credits
-function checkEEMajorRequiredCredits(data: any, rules: any) {
-  let EEMajorRequiredRules = [rules["電機專長"][0]];
+function checkEEMajorRequiredCredits(data: any, rules: {[key: string]:any}) {
+  let EEMajorRequiredRules = [rules["rule"]["電機專長"][0]];
 
   console.log(EEMajorRequiredRules);
 
@@ -532,8 +539,8 @@ function checkEEMajorRequiredCredits(data: any, rules: any) {
 }
 
 // check EE-major-experience credits
-function checkEEMajorExperienceCredits(data: any, rules: any) {
-  let EEMajorExperienceRules = rules["電機專長-實驗群組"];
+function checkEEMajorExperienceCredits(data: any, rules: {[key: string]:any}) {
+  let EEMajorExperienceRules = rules["rule"]["電機專長-實驗群組"];
 
   console.log(EEMajorExperienceRules);
 
@@ -565,8 +572,8 @@ function checkEEMajorExperienceCredits(data: any, rules: any) {
 }
 
 // check EE-major-markCourse credits
-function checkEEMajorMarkCourseCredits(data: any, rules: any) {
-  let EEMajorMarkCourseRules = rules["電機專長-記號課程"];
+function checkEEMajorMarkCourseCredits(data: any, rules: {[key: string]:any}) {
+  let EEMajorMarkCourseRules = rules["rule"]["電機專長-記號課程"];
 
   console.log(EEMajorMarkCourseRules);
 
@@ -605,8 +612,8 @@ function checkEEMajorMarkCourseCredits(data: any, rules: any) {
 }
 
 // check EE-major-elective credits
-function checkEEMajorElectiveCredits(data: any, rules: any) {
-  let EEMajorElectiveRules = [rules["電機專長"][1]];
+function checkEEMajorElectiveCredits(data: any, rules: {[key: string]:any}) {
+  let EEMajorElectiveRules = [rules["rule"]["電機專長"][1]];
 
   console.log(EEMajorElectiveRules);
 
@@ -635,16 +642,16 @@ function checkEEMajorElectiveCredits(data: any, rules: any) {
     : console.log("電機專長-其他選修：不通過", "已修", categoryCourses);
 }
 
-async function validation(checkTable: any, rules: any) {
+async function validation(checkTable: any, rules: {[key: string]:any}) {
   // 有 return => 不可重複計算
   console.log("<===========================================================>");
   let data = structuredClone(checkTable);
   console.log("<===========================================================>");
-  await checkTotalCredits(data);
+  await checkTotalCredits(data["checkTable"]);
   console.log("<===========================================================>");
-  await checkCreativeAndStartupCredits(data, rules);
+  await checkCreativeAndStartupCredits(data["checkTable"], rules);
   console.log("<===========================================================>");
-  data = await checkSchoolRequiredCredits(data, rules);
+  data = await checkSchoolRequiredCredits(data["checkTable"], rules);
   console.log("<===========================================================>");
   data = await checkAcademyRequiredCredits(data, rules);
   console.log("<===========================================================>");
@@ -668,8 +675,10 @@ async function validation(checkTable: any, rules: any) {
   console.log("<===========================================================>");
 }
 
-function GradReviewer(rules: any, checkTable: any) {
+function GradReviewer(rules: {[key: string]:any}) {
+  const checkTable = React.useContext(CheckTableContext);
   const handleClick = () => {
+    console.log("checkTble: ",checkTable);
     validation(checkTable, rules);
   }
 

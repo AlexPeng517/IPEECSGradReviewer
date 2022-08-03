@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import GradReviewer from "./GradReviewer";
 import axios from "axios";
+import {CheckTableContext} from "./FetchGradeTable"
 
 const apiUrls = {
   108: "https://script.google.com/macros/s/AKfycbwBJSRf4vg5TgwgGJW95oLfk_OrX0pSqwheFAHUoCBoS-ule8gLQwQF4sZReKXexRX8AQ/exec",
@@ -21,7 +22,9 @@ let ruleTag = [
   "通訊專長",
 ];
 
-function SelectGradReviewRule(checkTable:any) {
+function SelectGradReviewRule() {
+  const checkTable = React.useContext(CheckTableContext);
+  console.log("checkTable from select component",checkTable);
   const [ruleYear,setRuleYear] = React.useState("-- select an option -- ");
   const [ruleFecthingState,setRuleFecthingState] = React.useState("fetching rules");
   const handleChange = (e:any) =>{
@@ -49,7 +52,7 @@ function SelectGradReviewRule(checkTable:any) {
       </select>
       <p>{ruleFecthingState}</p>
       <p>You have selected {ruleYear} !</p>
-      <GradReviewer rule={rules} checkTable={checkTable}/>
+      {ruleFecthingState == "rules are up to date" && <GradReviewer rule={rules} />}
     </div>
 
   );
