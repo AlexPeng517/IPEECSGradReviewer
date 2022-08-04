@@ -253,7 +253,7 @@ function checkAcademyElectiveCredits(data: any, rules: { [key: string]: any }) {
 
   console.log(validation);
 
-  let final = totalCredits >= 6 && pass;
+  let final = totalCredits >= 6;
   final
     ? console.log("院訂必選：通過")
     : console.log("院訂必選：不通過", "已修", categoryCourses);
@@ -285,8 +285,8 @@ function checkEnglishRequiredCredits(data: any, rules: { [key: string]: any }) {
 
   let final = totalCredits >= 2 && pass;
   final
-    ? console.log("英文選修：通過")
-    : console.log("英文選修：不通過", "已修", categoryCourses);
+    ? console.log("英文必選：通過")
+    : console.log("英文必選：不通過", "已修", categoryCourses);
 
   return clearCourses(categoryCourses, data);
 }
@@ -626,7 +626,7 @@ function checkEEMajorMarkCourseCredits(
     }
   });
 
-  let final = totalCredits >= 18 && classes >= 3 && pass;
+  let final = totalCredits >= 18 && classes >= 3;
   final
     ? console.log("電機專長-記號課程：通過")
     : console.log("電機專長-記號課程：不通過", "已修", categoryCourses);
