@@ -6,6 +6,8 @@ import { CheckTableContext } from "./FetchGradeTable";
 const apiUrls = {
   108: "https://script.google.com/macros/s/AKfycbwBJSRf4vg5TgwgGJW95oLfk_OrX0pSqwheFAHUoCBoS-ule8gLQwQF4sZReKXexRX8AQ/exec",
   109: "https://script.google.com/macros/s/AKfycbwU7mfMkA2lnuDofNyaq0h-cAPw4AFpHR3l2WLYTW3GtNhUUKW80YJk1eB61RpglUAf/exec",
+  110: "https://script.google.com/macros/s/AKfycbwU7mfMkA2lnuDofNyaq0h-cAPw4AFpHR3l2WLYTW3GtNhUUKW80YJk1eB61RpglUAf/exec",
+  111: "https://script.google.com/macros/s/AKfycbwU7mfMkA2lnuDofNyaq0h-cAPw4AFpHR3l2WLYTW3GtNhUUKW80YJk1eB61RpglUAf/exec",
 };
 let rules: never[] = [];
 // let ruleTag = [
@@ -47,7 +49,11 @@ function SelectGradReviewRule() {
   };
   return (
     <div>
-      <select value={ruleYear} onChange={handleChange}>
+      <select
+        value={ruleYear}
+        onChange={handleChange}
+        disabled={ruleFetchingState === "wait for fetching rules"}
+      >
         <option hidden selected>
           {" "}
           -- select an option --{" "}
