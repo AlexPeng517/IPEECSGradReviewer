@@ -237,7 +237,7 @@ function checkAcademyElectiveCredits(data: any, rules: { [key: string]: any }) {
   let [categoryCourses, categoryCredits] = getAllCategoryCourse(
     {
       規則: academyElectiveRules,
-      可抵修: false,
+      可抵修: true,
     },
     data
   );
