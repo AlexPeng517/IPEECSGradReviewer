@@ -1,9 +1,16 @@
 import React, { useEffect } from "react";
 import { Buffer } from "buffer";
-const iconv = require("iconv-lite");
+import SelectGradReviewRule from "./SelectGradReviewRule";
 
+export const CheckTableContext = React.createContext({});
+export const CheckTableContextProvider = CheckTableContext.Provider;
+
+const iconv = require("iconv-lite");
+let checkTable: any[] = [];
 function FetchGradeTable() {
-  const [fetchingState, setfetchingState] = React.useState("fetching");
+  const [fetchingState, setfetchingState] = React.useState(
+    "fetching course table..."
+  );
   useEffect(() => {
     chrome.cookies.getAll({ url: "https://cis.ncu.edu.tw" }, callback);
     console.log("get cookies");
@@ -68,7 +75,6 @@ function FetchGradeTable() {
 
       // 去除重複課號
       const flags = new Set();
-      let checkTable: any[] = [];
       newTable.forEach((course) => {
         if (
           flags.has(course[2]) ||
@@ -93,6 +99,9 @@ function FetchGradeTable() {
   return (
     <div>
       <h1>{fetchingState}</h1>
+      <CheckTableContextProvider value={{ checkTable }}>
+        {fetchingState === "done" && <SelectGradReviewRule />}
+      </CheckTableContextProvider>
     </div>
   );
 }
