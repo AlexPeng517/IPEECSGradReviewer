@@ -8,7 +8,9 @@ export const CheckTableContextProvider = CheckTableContext.Provider;
 const iconv = require("iconv-lite");
 let checkTable: any[] = [];
 function FetchGradeTable() {
-  const [fetchingState, setfetchingState] = React.useState("fetching course table...");
+  const [fetchingState, setfetchingState] = React.useState(
+    "fetching course table..."
+  );
   useEffect(() => {
     chrome.cookies.getAll({ url: "https://cis.ncu.edu.tw" }, callback);
     console.log("get cookies");
@@ -98,7 +100,7 @@ function FetchGradeTable() {
     <div>
       <h1>{fetchingState}</h1>
       <CheckTableContextProvider value={{ checkTable }}>
-        {fetchingState =="done" && <SelectGradReviewRule/>}
+        {fetchingState === "done" && <SelectGradReviewRule />}
       </CheckTableContextProvider>
     </div>
   );
