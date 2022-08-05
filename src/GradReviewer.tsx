@@ -1,6 +1,9 @@
 import React from "react";
 import { CheckTableContext } from "./FetchGradeTable";
 
+let commonObj: any;
+let majorObj: any;
+
 export interface CategoryCourses {
   [key: string]: Array<string>;
 }
@@ -62,16 +65,16 @@ function validateCourses(obj: { 課程: any; 學分: any; 規則: any }) {
       validation.push({
         name: rule[0],
         valid: true,
-        response: `${rule[0]} 符合規定，共 ${obj["學分"][rule[0]]} 學分`,
+        credits: obj["學分"][rule[0]],
+        courses: obj["課程"][rule[0]],
       });
     } else {
       pass = false;
       validation.push({
         name: rule[0],
         valid: false,
-        response: `${rule[0]} 不符合規定，共 ${
-          obj["學分"][rule[0]]
-        } 學分，已修習 ${obj["課程"][rule[0]]} 的課程`,
+        credits: obj["學分"][rule[0]],
+        courses: obj["課程"][rule[0]],
       });
     }
   });
@@ -93,13 +96,16 @@ function clearCourses(obj: any, data: any) {
 }
 // check total credits
 function checkTotalCredits(checkTableData: any) {
-  let totalCredits = 0;
+  let validation = 0;
   for (let i = 0; i < checkTableData.length; i++) {
-    totalCredits += parseInt(checkTableData[i].credits);
+    validation += parseInt(checkTableData[i].credits);
   }
-  totalCredits < 128
+  let final = validation >= 128;
+  validation < 128
     ? console.log("總學分：不通過，低於 128")
     : console.log("總學分：通過");
+
+  commonObj["總學分"] = { final, validation };
 }
 
 // check creative-and-startup credits
@@ -136,6 +142,8 @@ function checkCreativeAndStartupCredits(
   final
     ? console.log("創意與創業學分學程：通過")
     : console.log("創意與創業學分學程：不通過", "已修", categoryCourses);
+
+  commonObj["創意與創業學分學程"] = { final, validation };
 }
 
 // check school-required credits 非重複計算
@@ -194,6 +202,8 @@ function checkSchoolRequiredCredits(data: any, rules: { [key: string]: any }) {
     ? console.log("校訂必修：通過")
     : console.log("校訂必修：不通過", "已修", categoryCourses);
 
+  commonObj["校訂必修"] = { final, validation };
+
   return clearCourses(categoryCourses, data);
 }
 
@@ -226,6 +236,8 @@ function checkAcademyRequiredCredits(data: any, rules: { [key: string]: any }) {
     ? console.log("院訂必修：通過")
     : console.log("院訂必修：不通過", "已修", categoryCourses);
 
+  commonObj["院訂必修"] = { final, validation };
+
   return clearCourses(categoryCourses, data);
 }
 
@@ -257,6 +269,8 @@ function checkAcademyElectiveCredits(data: any, rules: { [key: string]: any }) {
   final
     ? console.log("院訂必選：通過")
     : console.log("院訂必選：不通過", "已修", categoryCourses);
+
+  commonObj["院訂必選"] = { final, validation };
 }
 
 // check english-required credits
@@ -288,12 +302,15 @@ function checkEnglishRequiredCredits(data: any, rules: { [key: string]: any }) {
     ? console.log("英文必選：通過")
     : console.log("英文必選：不通過", "已修", categoryCourses);
 
+  commonObj["英文必選"] = { final, validation };
+
   return clearCourses(categoryCourses, data);
 }
 
 // CS-major
 // check CS-major credits
 function checkCSMajorCredits(data: any, rules: { [key: string]: any }) {
+  majorObj["資工專長"] = {};
   data = checkCSMajorRequiredCredits(data, rules);
   checkCSMajorElectiveCredits(data, rules);
 }
@@ -328,6 +345,7 @@ function checkCSMajorRequiredCredits(data: any, rules: { [key: string]: any }) {
     ? console.log("資工專長必修：通過")
     : console.log("資工專長必修：不通過", "已修", categoryCourses);
 
+  majorObj["資工專長"]["必修"] = { final, validation };
   return clearCourses(categoryCourses, data);
 }
 
@@ -360,11 +378,14 @@ function checkCSMajorElectiveCredits(data: any, rules: { [key: string]: any }) {
   final
     ? console.log("資工專長-其他選修：通過")
     : console.log("資工專長-其他選修：不通過", "已修", categoryCourses);
+
+  majorObj["資工專長"]["其他選修"] = { final, validation };
 }
 
 // network-major
 // check network-major credits
 function checkNetworkMajorCredits(data: any, rules: { [key: string]: any }) {
+  majorObj["網路專長"] = {};
   data = checkNetworkMajorRequiredCredits(data, rules);
   checkNetworkMajorElectiveCredits(data, rules);
 }
@@ -402,6 +423,8 @@ function checkNetworkMajorRequiredCredits(
     ? console.log("網路專長必修：通過")
     : console.log("網路專長必修：不通過", "已修", categoryCourses);
 
+  majorObj["網路專長"]["必修"] = { final, validation };
+
   return clearCourses(categoryCourses, data);
 }
 
@@ -437,11 +460,14 @@ function checkNetworkMajorElectiveCredits(
   final
     ? console.log("網路專長-其他選修：通過")
     : console.log("網路專長-其他選修：不通過", "已修", categoryCourses);
+
+  majorObj["網路專長"]["其他選修"] = { final, validation };
 }
 
 // CO-major
 // check CO-major credits
 function checkCOMajorCredits(data: any, rules: { [key: string]: any }) {
+  majorObj["通訊專長"] = {};
   data = checkCOMajorRequiredCredits(data, rules);
   checkCOMajorElectiveCredits(data, rules);
 }
@@ -479,6 +505,8 @@ function checkCOMajorRequiredCredits(data: any, rules: { [key: string]: any }) {
     ? console.log("通訊專長-必修必選：通過")
     : console.log("通訊專長-必修必選：不通過", "已修", categoryCourses);
 
+  majorObj["通訊專長"]["必修"] = { final, validation };
+
   return clearCourses(categoryCourses, data);
 }
 
@@ -511,11 +539,14 @@ function checkCOMajorElectiveCredits(data: any, rules: { [key: string]: any }) {
   final
     ? console.log("通訊專長-其他選修：通過")
     : console.log("通訊專長-其他選修：不通過", "已修", categoryCourses);
+
+  majorObj["通訊專長"]["其他選修"] = { final, validation };
 }
 
 // EE-major
 // check EE-major credits
 function checkEEMajorCredits(data: any, rules: { [key: string]: any }) {
+  majorObj["電機專長"] = {};
   data = checkEEMajorRequiredCredits(data, rules);
   data = checkEEMajorExperienceCredits(data, rules);
   data = checkEEMajorMarkCourseCredits(data, rules);
@@ -552,6 +583,8 @@ function checkEEMajorRequiredCredits(data: any, rules: { [key: string]: any }) {
     ? console.log("電機專長必修：通過")
     : console.log("電機專長必修：不通過", "已修", categoryCourses);
 
+  majorObj["電機專長"]["必修"] = { final, validation };
+
   return clearCourses(categoryCourses, data);
 }
 
@@ -587,6 +620,8 @@ function checkEEMajorExperienceCredits(
   final
     ? console.log("電機專長-實驗群組：通過")
     : console.log("電機專長-實驗群組：不通過", "已修", categoryCourses);
+
+  majorObj["電機專長"]["實驗群組"] = { final, validation };
 
   return clearCourses(categoryCourses, data);
 }
@@ -631,6 +666,8 @@ function checkEEMajorMarkCourseCredits(
     ? console.log("電機專長-記號課程：通過")
     : console.log("電機專長-記號課程：不通過", "已修", categoryCourses);
 
+  majorObj["電機專長"]["記號課程"] = { final, validation };
+
   return clearCourses(categoryCourses, data);
 }
 
@@ -663,10 +700,14 @@ function checkEEMajorElectiveCredits(data: any, rules: { [key: string]: any }) {
   final
     ? console.log("電機專長-其他選修：通過")
     : console.log("電機專長-其他選修：不通過", "已修", categoryCourses);
+
+  majorObj["電機專長"]["其他選修"] = { final, validation };
 }
 
 async function validation(checkTable: any, rules: { [key: string]: any }) {
   // 有 return => 不可重複計算
+  commonObj = {};
+  majorObj = {};
   console.log("<===========================================================>");
   let data = structuredClone(checkTable);
   console.log("<===========================================================>");
@@ -696,18 +737,209 @@ async function validation(checkTable: any, rules: { [key: string]: any }) {
   let EEData = structuredClone(data);
   await checkEEMajorCredits(EEData, rules);
   console.log("<===========================================================>");
+  console.log(commonObj);
+  console.log(majorObj);
+}
+
+// generate uuID without '-'
+function uuid() {
+  let id = Date.now();
+  if (
+    typeof performance !== "undefined" &&
+    typeof performance.now === "function"
+  ) {
+    id += performance.now(); //use high-precision timer if available
+  }
+  return "xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    var r = (id + Math.random() * 16) % 16 | 0;
+    id = Math.floor(id / 16);
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
+function createHTMLFile() {
+  // const download = document.querySelector("#download");
+  // const test = document.querySelector('.test');
+  let totalCredits = commonObj["總學分"];
+  let str = "";
+  str += `
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="https://img.icons8.com/ios/344/test.png" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+    <title>validation result</title>
+  </head>
+  <body>
+  `;
+
+  str += `
+    <div class="container">
+      <div class="row g-3">
+  `;
+  str += `
+        <div class="col-12">
+          <div class="card ${
+            totalCredits.final ? "bg-success" : "bg-danger"
+          } bg-opacity">
+            <div class="card-body">
+              <h5 class="card-title text-white font-weight-bold">總學分</h5>
+              <h6 class="card-subtitle mb-2 text-white">${
+                totalCredits.final ? "通過" : "未通過"
+              }</h6>
+              <h2 class="card-text bg-white p-3 rounded border-3">共 ${
+                totalCredits.validation
+              } 學分</h2>
+            </div>
+          </div>
+        </div>
+  `;
+  delete commonObj["總學分"];
+  Object.entries(commonObj).forEach((entry: any) => {
+    let [key, value] = entry;
+    str += `
+        <div class="col-12">
+          <div class="card ${
+            value.final ? "bg-success" : "bg-danger"
+          } bg-opacity">
+            <div class="card-body">
+              <h5 class="card-title text-white font-weight-bold">${key}</h5>
+              <h6 class="card-subtitle mb-2 text-white">${
+                value.final ? "通過" : "未通過"
+              }</h6>
+              <div class="accordion">
+    `;
+    value.validation.forEach((result: any) => {
+      let id = uuid();
+      str += `
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="Heading-${id}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#Collapse-${id}" aria-expanded="false" aria-controls="Collapse-${id}">
+                      ${result.name} ${result.valid ? "通過" : "未通過"}
+                    </button>
+                  </h2>
+                  <div id="Collapse-${id}" class="accordion-collapse collapse" aria-labelledby="Heading-${id}">
+                    <div class="accordion-body">
+                      <p class="accordion-text">共 ${result.credits} 學分</p>
+                      <p class="accordion-text">已修 ${result.courses.toString()}</p>
+                    </div>
+                  </div>
+                </div>
+      `;
+    });
+    str += `
+              </div>
+            </div>
+          </div>
+        </div>
+    `;
+  });
+
+  str += `
+        <div class="col-12"></div>
+  `;
+
+  Object.entries(majorObj).forEach((entry: any) => {
+    let [key, value] = entry;
+    str += `
+        <div class="col-12">
+          <div class="card ${
+            value.final ? "bg-success" : "bg-danger"
+          } bg-opacity">
+            <div class="card-body">
+              <h5 class="card-title text-white font-weight-bold">${key}</h5>
+              <h6 class="card-subtitle mb-2 text-white">${
+                value.final ? "通過" : "未通過"
+              }</h6>
+              <ul class="list-group">
+    `;
+
+    Object.entries(value).forEach((termsEntry: any) => {
+      let [term, termValue] = termsEntry;
+      str += `
+                <li class="list-group-item">
+                  <p class="card-text">${term} ${
+        termValue.final ? "通過" : "未通過"
+      }</p>
+                  <div class="accordion">
+      `;
+      termValue.validation.forEach((result: any) => {
+        let id = uuid();
+        str += `
+                    <div class="accordion-item">
+                      <h2 class="accordion-header" id="Heading-${id}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#Collapse-${id}" aria-expanded="false" aria-controls="Collapse-${id}">
+                          ${result.name} ${result.valid ? "通過" : "未通過"}
+                        </button>
+                      </h2>
+                      <div id="Collapse-${id}" class="accordion-collapse collapse" aria-labelledby="Heading-${id}">
+                        <div class="accordion-body">
+                          <p class="accordion-text">共 ${
+                            result.credits
+                          } 學分</p>
+                          <p class="accordion-text">已修 ${result.courses.toString()}</p>
+                        </div>
+                      </div>
+                    </div>
+        `;
+      });
+      str += `
+                  </div>
+                </li>
+      `;
+    });
+    str += `
+            </ul>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  str += `
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
+    </body>
+  </html>`;
+
+  return str;
 }
 
 function GradReviewer(rules: { [key: string]: any }) {
   const checkTable = React.useContext(CheckTableContext);
+  const [HTMLFileGenerateState, setHTMLFileGenerateState] =
+    React.useState("generate HTML file");
   const handleClick = () => {
-    console.log("checkTable: ", checkTable);
+    // console.log("checkTable: ", checkTable);
     validation(checkTable, rules);
+    setHTMLFileGenerateState("done");
+  };
+  // download HTML file
+  const downloadClick = (e: any) => {
+    // console.log(e.target);
+    console.log("download file");
+    e.target.href =
+      "data:text/html;charset=UTF-8," + encodeURIComponent(createHTMLFile());
+    setHTMLFileGenerateState("reset to default");
   };
 
   return (
     <div>
       <button onClick={handleClick}>check</button>
+      <a
+        id="download"
+        onClick={downloadClick}
+        href="#download"
+        download="validate.html"
+        style={HTMLFileGenerateState === "done" ? {} : { display: "none" }}
+      >
+        Download
+      </a>
     </div>
   );
 }
