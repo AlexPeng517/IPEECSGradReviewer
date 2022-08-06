@@ -772,6 +772,7 @@ function createHTMLFile() {
     <meta name="author" content="">
     <link rel="icon" href="https://img.icons8.com/ios/344/test.png" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" integrity="sha512-1sCRPdkRXhBV2PBLUdRb4tMg1w2YPf37qatUFeS7zlBy7jJI8Lf4VHwWfZZfpXtYSLy85pkm9GaYVYMfw5BC1A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>validation result</title>
   </head>
   <body>
@@ -787,7 +788,7 @@ function createHTMLFile() {
             totalCredits.final ? "bg-success" : "bg-danger"
           } bg-opacity">
             <div class="card-body">
-              <h5 class="card-title text-white font-weight-bold">總學分</h5>
+              <h5 class="card-title text-white fw-bold">總學分</h5>
               <h6 class="card-subtitle mb-2 text-white">${
                 totalCredits.final ? "通過" : "未通過"
               }</h6>
@@ -807,7 +808,7 @@ function createHTMLFile() {
             value.final ? "bg-success" : "bg-danger"
           } bg-opacity">
             <div class="card-body">
-              <h5 class="card-title text-white font-weight-bold">${key}</h5>
+              <h5 class="card-title text-white fw-bold">${key}</h5>
               <h6 class="card-subtitle mb-2 text-white">${
                 value.final ? "通過" : "未通過"
               }</h6>
@@ -818,14 +819,22 @@ function createHTMLFile() {
       str += `
                 <div class="accordion-item">
                   <h2 class="accordion-header" id="Heading-${id}">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#Collapse-${id}" aria-expanded="false" aria-controls="Collapse-${id}">
-                      ${result.name} ${result.valid ? "通過" : "未通過"}
+                    <button class="accordion-button p-2 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#Collapse-${id}" aria-expanded="false" aria-controls="Collapse-${id}">
+                      ${result.name} 
+                      <i class="fa-regular fa-circle-check text-success px-2 ${
+                        result.valid ? "d-block" : "d-none"
+                      }"></i>
+                      <i class="fa-regular fa-circle-xmark text-danger px-2 ${
+                        result.valid ? "d-none" : "d-block"
+                      }"></i>
                     </button>
                   </h2>
                   <div id="Collapse-${id}" class="accordion-collapse collapse" aria-labelledby="Heading-${id}">
-                    <div class="accordion-body">
-                      <p class="accordion-text">共 ${result.credits} 學分</p>
-                      <p class="accordion-text">已修 ${result.courses.toString()}</p>
+                    <div class="accordion-body p-2">
+                      <h5 class="accordion-text">共 ${result.credits} 學分</h5>
+                      <p class="accordion-text m-0">已修 ${result.courses.join(
+                        ", "
+                      )}</p>
                     </div>
                   </div>
                 </div>
@@ -851,7 +860,7 @@ function createHTMLFile() {
             value.final ? "bg-success" : "bg-danger"
           } bg-opacity">
             <div class="card-body">
-              <h5 class="card-title text-white font-weight-bold">${key}</h5>
+              <h5 class="card-title text-white fw-bold">${key}</h5>
               <h6 class="card-subtitle mb-2 text-white">${
                 value.final ? "通過" : "未通過"
               }</h6>
@@ -862,9 +871,9 @@ function createHTMLFile() {
       let [term, termValue] = termsEntry;
       str += `
                 <li class="list-group-item">
-                  <p class="card-text">${term} ${
+                  <h5 class="card-text fw-bold">${term} ${
         termValue.final ? "通過" : "未通過"
-      }</p>
+      }</h5>
                   <div class="accordion">
       `;
       termValue.validation.forEach((result: any) => {
@@ -872,16 +881,24 @@ function createHTMLFile() {
         str += `
                     <div class="accordion-item">
                       <h2 class="accordion-header" id="Heading-${id}">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#Collapse-${id}" aria-expanded="false" aria-controls="Collapse-${id}">
-                          ${result.name} ${result.valid ? "通過" : "未通過"}
+                        <button class="accordion-button p-2 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#Collapse-${id}" aria-expanded="false" aria-controls="Collapse-${id}">
+                          ${result.name} 
+                          <i class="fa-regular fa-circle-check text-success px-2 ${
+                            result.valid ? "d-block" : "d-none"
+                          }"></i>
+                          <i class="fa-regular fa-circle-xmark text-danger px-2 ${
+                            result.valid ? "d-none" : "d-block"
+                          }"></i> 
                         </button>
                       </h2>
                       <div id="Collapse-${id}" class="accordion-collapse collapse" aria-labelledby="Heading-${id}">
-                        <div class="accordion-body">
-                          <p class="accordion-text">共 ${
+                        <div class="accordion-body p-2">
+                          <h5 class="accordion-text">共 ${
                             result.credits
-                          } 學分</p>
-                          <p class="accordion-text">已修 ${result.courses.toString()}</p>
+                          } 學分</h5>
+                          <p class="accordion-text m-0">已修 ${result.courses.join(
+                            ", "
+                          )}</p>
                         </div>
                       </div>
                     </div>
