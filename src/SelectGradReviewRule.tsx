@@ -2,6 +2,7 @@ import React from "react";
 import GradReviewer from "./GradReviewer";
 import axios from "axios";
 import { CheckTableContext } from "./FetchGradeTable";
+import Form from 'react-bootstrap/Form';
 
 const apiUrls = {
   108: "https://script.google.com/macros/s/AKfycbwBJSRf4vg5TgwgGJW95oLfk_OrX0pSqwheFAHUoCBoS-ule8gLQwQF4sZReKXexRX8AQ/exec",
@@ -27,11 +28,11 @@ let rules: never[] = [];
 function SelectGradReviewRule() {
   const checkTable = React.useContext(CheckTableContext);
   console.log("checkTable from select component", checkTable);
-  const [ruleYear, setRuleYear] = React.useState("-- select an option -- ");
+  const [ruleYear, setRuleYear] = React.useState("-- select an year -- ");
   const [ruleFetchingState, setRuleFetchingState] =
-    React.useState("fetching rules");
+    React.useState("Please select a year to get rules");
   const handleChange = (e: any) => {
-    setRuleFetchingState("wait for fetching rules");
+    setRuleFetchingState("Fetching rules in progress...");
     setRuleYear(e.target.value);
     //fetch api to update rule
     const selectedRuleYear = e.target.value as number;
@@ -40,7 +41,7 @@ function SelectGradReviewRule() {
       .get(apiUrls[selectedRuleYear as keyof typeof apiUrls])
       .then((res) => {
         rules = res.data;
-        setRuleFetchingState("rules are up to date");
+        setRuleFetchingState("Rules are up to date");
         console.log(rules);
       })
       .catch((err) => {
@@ -49,12 +50,11 @@ function SelectGradReviewRule() {
   };
   return (
     <div>
-      <select
-        value={ruleYear}
+      <Form.Select value={ruleYear}
         onChange={handleChange}
-        disabled={ruleFetchingState === "wait for fetching rules"}
-      >
-        <option hidden selected>
+        disabled={ruleFetchingState === "Fetching rules in progress..."} 
+        aria-label="Default select example">
+      <option hidden selected>
           {" "}
           -- select an option --{" "}
         </option>
@@ -62,12 +62,15 @@ function SelectGradReviewRule() {
         <option value="109">109</option>
         <option value="110">110</option>
         <option value="111">111</option>
-      </select>
+      </Form.Select>
       <p>{ruleFetchingState}</p>
-      <p>You have selected {ruleYear} !</p>
-      {ruleFetchingState === "rules are up to date" && (
+      {ruleFetchingState === "Rules are up to date" && (
+         <p>You have selected {ruleYear} !</p>
+      )}
+      {ruleFetchingState === "Rules are up to date" && (
         <GradReviewer rule={rules} />
       )}
+     
     </div>
   );
 }

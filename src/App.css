@@ -1,14 +1,16 @@
 .App {
   text-align: center;
-  min-width: 300px;
-  max-width: 300px;
-  min-height: 300px;
-  max-height: 300px;
+  min-width: 400px;
+  max-width: 600px;
+  min-height: 600px;
+  max-height: 800px;
 }
 
 .App-logo {
-  height: 40vmin;
+  height: 30vmin;
   pointer-events: none;
+  position: relative;
+  bottom: 6vh;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -29,6 +31,10 @@
 }
 
 .App-link {
+  color: #61dafb;
+}
+
+.App-download {
   color: #61dafb;
 }
 
