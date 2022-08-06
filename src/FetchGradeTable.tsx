@@ -25,6 +25,9 @@ function FetchGradeTable() {
     let cookieHeader = "";
     let gradeTable = null;
     console.log(cookies);
+    if(cookies.length === 0){
+      setfetchingState("An error occurred when fetching grade table.");
+    }
     cookieHeader += `${cookies[0].name}=${cookies[0].value}; `;
     console.log(cookieHeader);
     let url =
@@ -46,6 +49,9 @@ function FetchGradeTable() {
         })
         .then(function (buf) {
           return iconv.decode(Buffer.from(buf), "big5");
+        }).catch(error =>{
+          console.log(error);
+          setfetchingState("An error occurred when fetching grade table.");
         });
 
       let parser = new DOMParser();
@@ -99,6 +105,14 @@ function FetchGradeTable() {
   return (
     <div>
       <h1>{fetchingState}</h1>
+      {fetchingState === "An error occurred when fetching grade table." && 
+      <a
+          className="App-link"
+          href="https://portal.ncu.edu.tw/system/162"
+          target="_blank"
+          rel="noopener noreferrer"
+        >Please Login to NCU Portal Prior to Fetch Your Grade Data</a>
+      }
       <CheckTableContextProvider value={{ checkTable }}>
         {fetchingState === "done" && <SelectGradReviewRule />}
       </CheckTableContextProvider>

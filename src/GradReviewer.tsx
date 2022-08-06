@@ -1,5 +1,7 @@
 import React from "react";
 import { CheckTableContext } from "./FetchGradeTable";
+import Button from "react-bootstrap/Button";
+import Alert from "react-bootstrap/Alert";
 
 let commonObj: any;
 let majorObj: any;
@@ -930,15 +932,18 @@ function GradReviewer(rules: { [key: string]: any }) {
 
   return (
     <div>
-      <button onClick={handleClick}>check</button>
+      <Button variant="primary" onClick={handleClick}>
+        Check
+      </Button>{" "}
       <a
+        className="App-download"
         id="download"
         onClick={downloadClick}
         href="#download"
         download="validate.html"
         style={HTMLFileGenerateState === "done" ? {} : { display: "none" }}
       >
-        Download
+        Download Result
       </a>
     </div>
   );
