@@ -1,8 +1,7 @@
-import React from 'react';
-import logo from './logo.svg';
+import logo from './logo192.png';
 import FetchGradeTable from './FetchGradeTable';
 import './App.css';
-import SelectGradReviewRule from './SelectGradReviewRule';
+
 
 
 function App() {
@@ -11,15 +10,15 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          Edit <code>src/App.tsx</code> and save to reload.
+          Welcome to IPEECS Graduation Review System.
         </p>
         <a
           className="App-link"
-          href="https://reactjs.org"
+          href="http://www.ipeecs.ncu.edu.tw/ipeecs/zh/rule/program"
           target="_blank"
           rel="noopener noreferrer"
         >
-          Learn React
+          Learn IPEECS Graduation Rules
         </a>
         <FetchGradeTable/>
       </header>
