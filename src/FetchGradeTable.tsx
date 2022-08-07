@@ -25,7 +25,7 @@ function FetchGradeTable() {
     let cookieHeader = "";
     let gradeTable = null;
     console.log(cookies);
-    if(cookies.length === 0){
+    if (cookies.length === 0) {
       setfetchingState("An error occurred when fetching grade table.");
     }
     cookieHeader += `${cookies[0].name}=${cookies[0].value}; `;
@@ -45,11 +45,13 @@ function FetchGradeTable() {
       console.log("Getting students grade records");
       let htmlString = await fetch(url, reqParams)
         .then(function (response) {
+          console.log(response);
           return response.arrayBuffer();
         })
         .then(function (buf) {
           return iconv.decode(Buffer.from(buf), "big5");
-        }).catch(error =>{
+        })
+        .catch((error) => {
           console.log(error);
           setfetchingState("An error occurred when fetching grade table.");
         });
@@ -91,7 +93,11 @@ function FetchGradeTable() {
           return;
         }
         flags.add(course[2]);
-        checkTable.push({ name: course[2], credits: course[3] });
+        checkTable.push({
+          name: course[2],
+          credits: course[3],
+        });
+        // grade: course[4],
         return true;
       });
       console.log("get 到的資料", newTable);
@@ -105,14 +111,16 @@ function FetchGradeTable() {
   return (
     <div>
       <h1>{fetchingState}</h1>
-      {fetchingState === "An error occurred when fetching grade table." && 
-      <a
+      {fetchingState === "An error occurred when fetching grade table." && (
+        <a
           className="App-link"
           href="https://portal.ncu.edu.tw/system/162"
           target="_blank"
           rel="noopener noreferrer"
-        >Please Login to NCU Portal Prior to Fetch Your Grade Data</a>
-      }
+        >
+          Please Login to NCU Portal Prior to Fetch Your Grade Data
+        </a>
+      )}
       <CheckTableContextProvider value={{ checkTable }}>
         {fetchingState === "done" && <SelectGradReviewRule />}
       </CheckTableContextProvider>
