@@ -84,9 +84,6 @@ function FetchGradeTable() {
       // 去除重複課號
       const flags = new Set();
       newTable.forEach((course) => {
-        if (course[4] === "免修") {
-          course.push("免修");
-        }
         if (
           flags.has(course[2]) ||
           !course[2] ||
