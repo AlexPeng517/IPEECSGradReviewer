@@ -56,6 +56,7 @@ function getAllCategoryCourse(obj: any, data: any) {
   });
   return [categoryCourses, categoryCredits];
 }
+
 function validateCourses(obj: { 課程: any; 學分: any; 規則: any }) {
   let validation: any = [];
   let totalCredits: number = 0;
@@ -100,6 +101,9 @@ function clearCourses(obj: any, data: any) {
 function checkTotalCredits(checkTableData: any) {
   let validation = 0;
   for (let i = 0; i < checkTableData.length; i++) {
+    // if (checkTableData[i].grades === "免修") {
+    //   return;
+    // }
     validation += parseInt(checkTableData[i].credits);
   }
   let final = validation >= 128;
@@ -856,15 +860,19 @@ function createHTMLFile() {
 
   Object.entries(majorObj).forEach((entry: any) => {
     let [key, value] = entry;
+    let checkFinal = true;
+    Object.values(value).forEach((validateEntry: any) => {
+      checkFinal = checkFinal && validateEntry.final;
+    });
     str += `
         <div class="col-12">
           <div class="card ${
-            value.final ? "bg-success" : "bg-danger"
+            checkFinal ? "bg-success" : "bg-danger"
           } bg-opacity">
             <div class="card-body">
               <h5 class="card-title text-white fw-bold">${key}</h5>
               <h6 class="card-subtitle mb-2 text-white">${
-                value.final ? "通過" : "未通過"
+                checkFinal ? "通過" : "未通過"
               }</h6>
               <ul class="list-group">
     `;
