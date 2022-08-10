@@ -1,7 +1,6 @@
 import React from "react";
 import { CheckTableContext } from "./FetchGradeTable";
 import Button from "react-bootstrap/Button";
-import Alert from "react-bootstrap/Alert";
 
 let commonObj: any;
 let majorObj: any;
@@ -263,7 +262,7 @@ function checkAcademyElectiveCredits(data: any, rules: { [key: string]: any }) {
   console.log(`符合的課程：`, categoryCourses);
   console.log(`符合的學分：`, categoryCredits);
 
-  let [validation, totalCredits, pass] = validateCourses({
+  let [validation, totalCredits] = validateCourses({
     課程: categoryCourses,
     學分: categoryCredits,
     規則: academyElectiveRules,
@@ -652,7 +651,7 @@ function checkEEMajorMarkCourseCredits(
   console.log(`符合的課程：`, categoryCourses);
   console.log(`符合的學分：`, categoryCredits);
 
-  let [validation, totalCredits, pass] = validateCourses({
+  let [validation, totalCredits] = validateCourses({
     課程: categoryCourses,
     學分: categoryCredits,
     規則: EEMajorMarkCourseRules,
