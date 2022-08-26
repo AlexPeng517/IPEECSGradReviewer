@@ -2,45 +2,96 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+# Installation
 
-In the project directory, you can run:
+## Step 1
 
-### `npm start`
+Clone this project to your desired directory.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+e.g. `D:\NCU`
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+run `git clone https://github.com/AlexPeng517/IPEECSGradReviewer.git`
 
-### `npm test`
+## Step 2
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Switch to the project directory that you have cloned in the previous step.
 
-### `npm run build`
+e.g. `cd D:\NCU\IPEECSGradReviewer`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Step 3
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+run `npm i` to install all dependencies.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Step 4
 
-### `npm run eject`
+run `npm run build` to start building the project.
+After building up, you may see a directory call `build` appear in the project directory.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## Step 5
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Start your Chrome, type `chrome://extensions` in your URL bar to navigate to the setting page.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+Then, enable developers mode (rightmost of navbar)
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+![](https://i.imgur.com/CRYm1l7.png)
 
-## Learn More
+## Step 5
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Select loading unencapsulated project option (leftmost of navbar)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+![](https://i.imgur.com/2XSH43O.png)
+
+Load the `build` directory that appears after step 4.
+
+After loaded, type `chrome://restart` in your URL bar to restart Chrome in case the extension not loaded successfully.
+
+# Useage
+
+## Step 1
+
+If you didn't logged in to NCU Portal first, refer to UI, will guide you to the login page via a link below.
+
+![notLoggedIn](https://i.imgur.com/wTpRZpH.png)
+
+## Step 2
+
+If you logged in, it will fetch your courses record automatically, please wait for a second.
+
+Then you can select a specific graduation rules by years, please refer to the first three numbers of your student ID or your enrollment year. 
+
+![LoggedIn](https://i.imgur.com/a8w8SY7.png)
+
+## Step 3
+
+After select a correct year, it will update its review rules automatically, please wait for a second.
+
+![selectedAYear](https://i.imgur.com/tI4CVu5.png)
+
+## Step 4
+
+Once all data is up to date, you can click the `check` button to start reviewing.
+
+When reviewing process ended, you can download the result by clicking the link right beside the `check` button
+
+![checkAndDownload](https://i.imgur.com/iVzl1AK.png)
+
+## Step 5
+
+The result report filename is validate.html, you can use any browser to open it.
+
+![reportDemo](https://i.imgur.com/ad4rO9p.png)
+
+
+# Disclaimer:
+All The Data Is Processed Automatically And Locally, The Developer Team Will Not Gather Any User Data In Any Way.
+
+
+
+
+
+
+
+
+
+
+
