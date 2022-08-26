@@ -43,7 +43,7 @@ After loaded, type `chrome://restart` in your URL bar to restart Chrome in case 
 
 
 
-# Another Installation Method
+# Another Installation Method (with Node.js installed)
 
 ### Step 1
 
@@ -86,7 +86,7 @@ Load the `build` directory that appears after step 4.
 
 After loaded, type `chrome://restart` in your URL bar to restart Chrome in case the extension not loaded successfully.
 
-# Useage
+# Usage
 
 ### Step 1
 
