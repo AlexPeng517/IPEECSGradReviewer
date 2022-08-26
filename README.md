@@ -4,7 +4,46 @@ This is a useful tool dedicated to help students in NCU IPEECS program reviewing
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-# Installation
+
+# Quick Installation (Using GitHub Actions)
+
+### Step 1
+
+Switch to Actions page.
+
+![gitHubActions](https://user-images.githubusercontent.com/61203384/186875619-a2fbbbce-6ce3-469b-8a62-6d475d58a5cc.PNG)
+
+### Step 2
+
+Choose the latest build version and download the artifacts.
+
+![downloadPack](https://user-images.githubusercontent.com/61203384/186876314-a7b89edb-2e77-4490-9701-2811ac62bb08.PNG)
+
+
+### Step 3
+
+Extract the artifact .zip file to your desired directory.
+
+Start your Chrome, type `chrome://extensions` in your URL bar to navigate to the setting page.
+
+Then, enable developers mode (rightmost of navbar)
+
+![](https://i.imgur.com/CRYm1l7.png)
+
+### Step 4
+
+Select loading unencapsulated project option (leftmost of navbar)
+
+![](https://i.imgur.com/2XSH43O.png)
+
+Load the extrated directory that appeared in step 3.
+
+After loaded, type `chrome://restart` in your URL bar to restart Chrome in case the extension not loaded successfully.
+
+
+
+
+# Another Installation Method
 
 ### Step 1
 
