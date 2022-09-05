@@ -24,19 +24,25 @@ Choose the latest build version and download the artifacts.
 
 Extract the artifact .zip file to your desired directory.
 
-Start your Chrome, type `chrome://extensions` in your URL bar to navigate to the setting page.
+Start your Chrome, type `chrome://extensions` in your URL bar to navigate to the setting page. (Edge: `edge://extensions`)
 
 Then, enable developers mode (rightmost of navbar)
 
-![](https://i.imgur.com/CRYm1l7.png)
+Edge: ![image](https://user-images.githubusercontent.com/48956859/188354053-37231917-a3e4-4b41-aaba-7c59ff237094.png)
+
+Chrome: ![](https://i.imgur.com/CRYm1l7.png)
 
 ### Step 4
 
 Select loading unencapsulated project option (leftmost of navbar)
 
-![](https://i.imgur.com/2XSH43O.png)
+Edge: ![image](https://user-images.githubusercontent.com/48956859/188354103-3a8de833-42e0-4433-8bd7-e7483881606d.png)
+
+Chrome: ![](https://i.imgur.com/2XSH43O.png)
 
 Load the extrated directory that appeared in step 3.
+
+![image](https://user-images.githubusercontent.com/48956859/188354280-dd9a161f-3f86-49ba-a5ec-c7d5106816ef.png)
 
 After loaded, type `chrome://restart` in your URL bar to restart Chrome in case the extension not loaded successfully.
 
