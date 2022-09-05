@@ -42,6 +42,8 @@ Chrome: ![](https://i.imgur.com/2XSH43O.png)
 
 Load the extrated directory that appeared in step 3.
 
+![image](https://user-images.githubusercontent.com/48956859/188354280-dd9a161f-3f86-49ba-a5ec-c7d5106816ef.png)
+
 After loaded, type `chrome://restart` in your URL bar to restart Chrome in case the extension not loaded successfully.
 
 
