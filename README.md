@@ -124,7 +124,7 @@ When reviewing process ended, you can download the result by clicking the link r
 
 ### Step 5
 
-The result report filename is validate.html, you can use any browser to open it.
+The result report filename is validate.html, you can use any browser to open it. (If the file is blank, please go to "成績查詢" page and try it again.)
 
 ![reportDemo](https://i.imgur.com/ad4rO9p.png)
 
