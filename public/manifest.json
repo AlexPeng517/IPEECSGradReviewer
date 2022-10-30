@@ -4,16 +4,18 @@
   "version": "1.0",
   "manifest_version": 3,
   "background": {
-    "service_worker": "background.ts"
+    "service_worker": "background.js"
   },
   "permissions": [
-    "*://*.cc.ncu.edu.tw/system/162*",
-    "*://cis.ncu.edu.tw/ScoreInquiries/student/student_record.php",
     "cookies",
     "declarativeContent",
     "storage"
   ],
-  "host_permissions": ["https://cis.ncu.edu.tw/*"],
+  "host_permissions": [
+    "*://*.cc.ncu.edu.tw/system/162*",
+    "*://cis.ncu.edu.tw/ScoreInquiries/student/student_record.php",
+    "https://cis.ncu.edu.tw/*"
+  ],
   "action": {
     "default_popup": "index.html",
     "defuault_icon": {

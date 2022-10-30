@@ -1,46 +1,144 @@
 # Getting Started with IPEECS Graduation Reviewer Chrome Extension
 
+This is a useful tool dedicated to help students in NCU IPEECS program reviewing their graduation progress. After check your course record with selected rules, it will generate a HTML file with detailed information of whether your record fits the rule, so you can get the suggestions and warnings of future course planning.
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
 
-In the project directory, you can run:
+# Quick Installation (Using GitHub Actions)
 
-### `npm start`
+### Step 1
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Switch to Actions page.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+![gitHubActions](https://user-images.githubusercontent.com/61203384/186875619-a2fbbbce-6ce3-469b-8a62-6d475d58a5cc.PNG)
 
-### `npm test`
+### Step 2
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Choose the latest build version and download the artifacts.
 
-### `npm run build`
+![downloadPack](https://user-images.githubusercontent.com/61203384/186876314-a7b89edb-2e77-4490-9701-2811ac62bb08.PNG)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Step 3
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Extract the artifact .zip file to your desired directory.
 
-### `npm run eject`
+Start your Chrome, type `chrome://extensions` in your URL bar to navigate to the setting page. (Edge: `edge://extensions`)
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+Then, enable developers mode (rightmost of navbar)
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Edge: ![image](https://user-images.githubusercontent.com/48956859/188354053-37231917-a3e4-4b41-aaba-7c59ff237094.png)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+Chrome: ![](https://i.imgur.com/CRYm1l7.png)
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### Step 4
 
-## Learn More
+Select loading unencapsulated project option (leftmost of navbar)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Edge: ![image](https://user-images.githubusercontent.com/48956859/188354103-3a8de833-42e0-4433-8bd7-e7483881606d.png)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Chrome: ![](https://i.imgur.com/2XSH43O.png)
+
+Load the extrated directory that appeared in step 3.
+
+![image](https://user-images.githubusercontent.com/48956859/188354280-dd9a161f-3f86-49ba-a5ec-c7d5106816ef.png)
+
+After loaded, type `chrome://restart` in your URL bar to restart Chrome in case the extension not loaded successfully.
+
+
+
+
+# Another Installation Method (with Node.js installed)
+
+### Step 1
+
+Clone this project to your desired directory.
+
+e.g. `D:\NCU`
+
+run `git clone https://github.com/AlexPeng517/IPEECSGradReviewer.git`
+
+### Step 2
+
+Switch to the project directory that you have cloned in the previous step.
+
+e.g. `cd D:\NCU\IPEECSGradReviewer`
+
+### Step 3
+
+run `npm i` to install all dependencies.
+
+### Step 4
+
+run `npm run build` to start building the project.
+After building up, you may see a directory call `build` appear in the project directory.
+
+### Step 5
+
+Start your Chrome, type `chrome://extensions` in your URL bar to navigate to the setting page.
+
+Then, enable developers mode (rightmost of navbar)
+
+![](https://i.imgur.com/CRYm1l7.png)
+
+### Step 5
+
+Select loading unencapsulated project option (leftmost of navbar)
+
+![](https://i.imgur.com/2XSH43O.png)
+
+Load the `build` directory that appears after step 4.
+
+After loaded, type `chrome://restart` in your URL bar to restart Chrome in case the extension not loaded successfully.
+
+# Usage
+
+### Step 1
+
+If you didn't logged in to NCU Portal first, refer to UI, will guide you to the login page via a link below.
+
+![notLoggedIn](https://i.imgur.com/wTpRZpH.png)
+
+### Step 2
+
+If you logged in, it will fetch your courses record automatically, please wait for a second.
+
+Then you can select a specific graduation rules by years, please refer to the first three numbers of your student ID or your enrollment year. 
+
+![LoggedIn](https://i.imgur.com/a8w8SY7.png)
+
+### Step 3
+
+After select a correct year, it will update its review rules automatically, please wait for a second.
+
+![selectedAYear](https://i.imgur.com/tI4CVu5.png)
+
+### Step 4
+
+Once all data is up to date, you can click the `check` button to start reviewing.
+
+When reviewing process ended, you can download the result by clicking the link right beside the `check` button
+
+![checkAndDownload](https://i.imgur.com/iVzl1AK.png)
+
+### Step 5
+
+The result report filename is validate.html, you can use any browser to open it.
+
+![reportDemo](https://i.imgur.com/ad4rO9p.png)
+
+
+# Disclaimer:
+All The Data Is Processed Automatically And Locally, The Developer Team Will Not Gather Any User Data In Any Way.
+
+
+
+
+
+
+
+
+
+
+

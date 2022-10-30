@@ -5,10 +5,10 @@ import { CheckTableContext } from "./FetchGradeTable";
 import Form from 'react-bootstrap/Form';
 
 const apiUrls = {
-  108: "https://script.google.com/macros/s/AKfycbwBJSRf4vg5TgwgGJW95oLfk_OrX0pSqwheFAHUoCBoS-ule8gLQwQF4sZReKXexRX8AQ/exec",
-  109: "https://script.google.com/macros/s/AKfycbwU7mfMkA2lnuDofNyaq0h-cAPw4AFpHR3l2WLYTW3GtNhUUKW80YJk1eB61RpglUAf/exec",
-  110: "https://script.google.com/macros/s/AKfycbwU7mfMkA2lnuDofNyaq0h-cAPw4AFpHR3l2WLYTW3GtNhUUKW80YJk1eB61RpglUAf/exec",
-  111: "https://script.google.com/macros/s/AKfycbwU7mfMkA2lnuDofNyaq0h-cAPw4AFpHR3l2WLYTW3GtNhUUKW80YJk1eB61RpglUAf/exec",
+  108: "https://script.google.com/macros/s/AKfycbwfymU6hEPR8cTMgQcrnLfGe_aH_GV1AZX2SJ3K7_piJ1MgplJ50-tWPAp9lvPERizi5g/exec",
+  109: "https://script.google.com/macros/s/AKfycby9M-00Qq2Ug3kqmnc2zjnSSjmYvBdWPClhCXzM00aESvt9T_Yyf3aAXlTgToRwBFcb/exec",
+  110: "https://script.google.com/macros/s/AKfycbwifwTJYcSEHwjR6iPuvI9gcqWDCx8FpfQDcNpd6EFaf77w1LQAuejpWHl3AxCY5Fc4Dg/exec",
+  111: "https://script.google.com/macros/s/AKfycbw9bA2u0QC-W8hxDxCMye3bvrjICNdkO8JXBoTeA7u4O8ve8l7dgyUm6X51XpWPibK_7w/exec",
 };
 let rules: never[] = [];
 // let ruleTag = [
