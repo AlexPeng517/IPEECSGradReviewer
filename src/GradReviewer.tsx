@@ -679,8 +679,8 @@ function checkEEMajorMarkCourseCredits(
 // check EE-major-elective credits
 function checkEEMajorElectiveCredits(data: any, rules: { [key: string]: any }) {
   let EEMajorElectiveRules = [rules["rule"]["電機專長"][1]];
-  if(EEMajorElectiveRules == undefined){
-    console.log("undefined 電機其他選修")
+  if(EEMajorElectiveRules === undefined){
+    console.log("電機其他選修 undefined")
     return;
   }
   console.log(EEMajorElectiveRules);
