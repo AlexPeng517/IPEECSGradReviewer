@@ -201,8 +201,9 @@ function checkSchoolRequiredCredits(data: any, rules: { [key: string]: any }) {
   });
 
   console.log(validation);
+  console.log(`校訂必修總學分：${totalCredits}`);
 
-  let final = totalCredits >= 25 && pass;
+  let final = pass;
   final
     ? console.log("校訂必修：通過")
     : console.log("校訂必修：不通過", "已修", categoryCourses);
@@ -235,8 +236,9 @@ function checkAcademyRequiredCredits(data: any, rules: { [key: string]: any }) {
   });
 
   console.log(validation);
+  console.log(`院訂必修總學分：${totalCredits}`);
 
-  let final = totalCredits >= 24 && pass;
+  let final = pass;
   final
     ? console.log("院訂必修：通過")
     : console.log("院訂必修：不通過", "已修", categoryCourses);
@@ -301,6 +303,7 @@ function checkEnglishRequiredCredits(data: any, rules: { [key: string]: any }) {
   });
 
   console.log(validation);
+  console.log(`英文必選總學分：${totalCredits}`);
 
   let final = totalCredits >= 2 && pass;
   final
@@ -344,8 +347,9 @@ function checkCSMajorRequiredCredits(data: any, rules: { [key: string]: any }) {
   });
 
   console.log(validation);
+  console.log(`資工專長必修總學分：${totalCredits}`);
 
-  let final = totalCredits >= 34 && pass;
+  let final = pass;
   final
     ? console.log("資工專長必修：通過")
     : console.log("資工專長必修：不通過", "已修", categoryCourses);
@@ -378,8 +382,9 @@ function checkCSMajorElectiveCredits(data: any, rules: { [key: string]: any }) {
   });
 
   console.log(validation);
+  console.log(`資工專長-其他選修總學分：${totalCredits}`);
 
-  let final = totalCredits >= 21 && pass;
+  let final = pass;
   final
     ? console.log("資工專長-其他選修：通過")
     : console.log("資工專長-其他選修：不通過", "已修", categoryCourses);
@@ -422,8 +427,9 @@ function checkNetworkMajorRequiredCredits(
   });
 
   console.log(validation);
+  console.log(`網路專長必修總學分：${totalCredits}`);
 
-  let final = totalCredits >= 31 && pass;
+  let final = pass;
   final
     ? console.log("網路專長必修：通過")
     : console.log("網路專長必修：不通過", "已修", categoryCourses);
@@ -460,8 +466,9 @@ function checkNetworkMajorElectiveCredits(
   });
 
   console.log(validation);
+  console.log(`網路專長-其他選修總學分：${totalCredits}`);
 
-  let final = totalCredits >= 21 && pass;
+  let final = pass;
   final
     ? console.log("網路專長-其他選修：通過")
     : console.log("網路專長-其他選修：不通過", "已修", categoryCourses);
@@ -504,8 +511,9 @@ function checkCOMajorRequiredCredits(data: any, rules: { [key: string]: any }) {
   });
 
   console.log(validation);
+  console.log(`通訊專長-必修必選總學分：${totalCredits}`);
 
-  let final = totalCredits >= 42 && pass;
+  let final = pass;
   final
     ? console.log("通訊專長-必修必選：通過")
     : console.log("通訊專長-必修必選：不通過", "已修", categoryCourses);
@@ -539,8 +547,9 @@ function checkCOMajorElectiveCredits(data: any, rules: { [key: string]: any }) {
   });
 
   console.log(validation);
+  console.log(`通訊專長-其他選修總學分：${totalCredits}`);
 
-  let final = totalCredits >= 12 && pass;
+  let final = pass;
   final
     ? console.log("通訊專長-其他選修：通過")
     : console.log("通訊專長-其他選修：不通過", "已修", categoryCourses);
@@ -582,8 +591,9 @@ function checkEEMajorRequiredCredits(data: any, rules: { [key: string]: any }) {
   });
 
   console.log(validation);
+  console.log(`電機專長必修總學分：${totalCredits}`);
 
-  let final = totalCredits >= EEMajorRequiredRules[1] && pass;
+  let final = pass;
   final
     ? console.log("電機專長必修：通過")
     : console.log("電機專長必修：不通過", "已修", categoryCourses);
@@ -620,8 +630,9 @@ function checkEEMajorExperienceCredits(
   });
 
   console.log(validation);
+  console.log(`電機專長-實驗群組總學分：${totalCredits}`);
 
-  let final = totalCredits >= 9 && pass;
+  let final = pass;
   final
     ? console.log("電機專長-實驗群組：通過")
     : console.log("電機專長-實驗群組：不通過", "已修", categoryCourses);
@@ -703,8 +714,9 @@ function checkEEMajorElectiveCredits(data: any, rules: { [key: string]: any }) {
   });
 
   console.log(validation);
+  console.log(`電機專長-其他選修總學分：${totalCredits}`);
 
-  let final = totalCredits >= 12 && pass;
+  let final = pass;
   final
     ? console.log("電機專長-其他選修：通過")
     : console.log("電機專長-其他選修：不通過", "已修", categoryCourses);
