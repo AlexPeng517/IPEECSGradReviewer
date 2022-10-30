@@ -583,7 +583,7 @@ function checkEEMajorRequiredCredits(data: any, rules: { [key: string]: any }) {
 
   console.log(validation);
 
-  let final = totalCredits >= 42 && pass;
+  let final = pass;
   final
     ? console.log("電機專長必修：通過")
     : console.log("電機專長必修：不通過", "已修", categoryCourses);
@@ -679,7 +679,10 @@ function checkEEMajorMarkCourseCredits(
 // check EE-major-elective credits
 function checkEEMajorElectiveCredits(data: any, rules: { [key: string]: any }) {
   let EEMajorElectiveRules = [rules["rule"]["電機專長"][1]];
-
+  if(EEMajorElectiveRules == undefined){
+    console.log("undefined 電機其他選修")
+    return;
+  }
   console.log(EEMajorElectiveRules);
 
   let [categoryCourses, categoryCredits] = getAllCategoryCourse(
