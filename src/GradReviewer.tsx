@@ -583,7 +583,7 @@ function checkEEMajorRequiredCredits(data: any, rules: { [key: string]: any }) {
 
   console.log(validation);
 
-  let final = pass;
+  let final = totalCredits >= EEMajorRequiredRules[1] && pass;
   final
     ? console.log("電機專長必修：通過")
     : console.log("電機專長必修：不通過", "已修", categoryCourses);
