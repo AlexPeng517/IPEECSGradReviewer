@@ -103,9 +103,13 @@ function FetchGradeTable() {
       console.log("get 到的資料", newTable);
       console.log("課號交集", flags);
       console.log("用來審核的資料", checkTable);
-
-      // console.log(gradeTable);
-      setfetchingState("done");
+      if(checkTable.length == 0){
+        setfetchingState("An error occurred when fetching grade table.");
+      }else{
+        // console.log(gradeTable);
+        setfetchingState("done");
+      }
+    
     });
   };
   return (
