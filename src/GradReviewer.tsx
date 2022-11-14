@@ -589,6 +589,7 @@ function checkEEMajorRequiredCredits(data: any, rules: { [key: string]: any }) {
     學分: categoryCredits,
     規則: EEMajorRequiredRules,
   });
+ 
 
   console.log(validation);
   console.log(`電機專長必修總學分：${totalCredits}`);
@@ -629,13 +630,19 @@ function checkEEMajorExperienceCredits(
     規則: EEMajorExperienceRules,
   });
 
+   //add cross realm check here
+  let isCrossRealm = false;
+  if(validation[0].valid && validation[1].valid && validation[2].valid){
+    isCrossRealm = true;
+  }
+
   console.log(validation);
   console.log(`電機專長-實驗群組總學分：${totalCredits}`);
 
-  let final = pass;
+  let final = pass&&isCrossRealm;
   final
     ? console.log("電機專長-實驗群組：通過")
-    : console.log("電機專長-實驗群組：不通過", "已修", categoryCourses);
+    : console.log("電機專長-實驗群組：不通過","跨三類:",isCrossRealm, "已修", categoryCourses);
 
   majorObj["電機專長"]["實驗群組"] = { final, validation };
 
@@ -689,7 +696,7 @@ function checkEEMajorMarkCourseCredits(
 
 // check EE-major-elective credits
 function checkEEMajorElectiveCredits(data: any, rules: { [key: string]: any }) {
-  if(rules["rule"]["電機專長"][1] === undefined){
+  if (rules["rule"]["電機專長"][1] === undefined) {
     console.log("電機其他選修 undefined");
     return;
   }
@@ -757,6 +764,7 @@ async function validation(checkTable: any, rules: { [key: string]: any }) {
   let EEData = structuredClone(data);
   await checkEEMajorCredits(EEData, rules);
   console.log("<===========================================================>");
+  console.log("commomOBj: ")
   console.log(commonObj);
   console.log(majorObj);
 }
