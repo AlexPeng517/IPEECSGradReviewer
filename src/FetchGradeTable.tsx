@@ -88,7 +88,8 @@ function FetchGradeTable() {
           flags.has(course[2]) ||
           !course[2] ||
           Number(course[4]) < 60 ||
-          course[4] === "停修"
+          course[4] === "停修" ||
+          course[4] === "未到"
         ) {
           return;
         }
