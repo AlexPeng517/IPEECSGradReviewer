@@ -8,9 +8,7 @@
   },
   "permissions": [
     "cookies",
-    "declarativeContent",
-    "storage",
-    "activeTab"
+    "declarativeContent"
   ],
   "host_permissions": [
     "*://*.cc.ncu.edu.tw/system/162*",
