@@ -2,6 +2,7 @@
   "name": "my-app",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.3.0",
@@ -15,7 +16,10 @@
     "axios": "^0.27.2",
     "bootstrap": "^5.2.0",
     "buffer": "^6.0.3",
+    "html2canvas": "^1.4.1",
+    "iconv-lite": "^0.6.3",
     "iconv-lite-ts": "0.0.1",
+    "jspdf": "^2.5.1",
     "react": "^18.2.0",
     "react-bootstrap": "^2.5.0",
     "react-dom": "^18.2.0",

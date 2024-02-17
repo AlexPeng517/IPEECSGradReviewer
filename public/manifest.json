@@ -9,13 +9,37 @@
   "permissions": [
     "cookies",
     "declarativeContent",
-    "storage"
+    "storage",
+    "activeTab"
   ],
   "host_permissions": [
     "*://*.cc.ncu.edu.tw/system/162*",
-    "*://cis.ncu.edu.tw/ScoreInquiries/student/student_record.php",
-    "https://cis.ncu.edu.tw/*"
+    "*://cis.ncu.edu.tw/*",
+    "*://portal.ncu.edu.tw/system*"
   ],
+  "content_scripts" : [  
+      {  
+        "matches" : ["*://portal.ncu.edu.tw/system*","*://cis.ncu.edu.tw/*"],
+        "all_frames": true,
+        "js": ["contentScript.js"]
+      } 
+  ],
+  "externally_connectable": {
+    "matches": ["https://portal.ncu.edu.tw/system/162"]
+  },
+  
+  "web_accessible_resources": [{
+    "resources": ["iconvImport.js","contentScript.js","../node_modules/iconv-lite/encodings/index.js"],
+    "matches": ["<all_urls>"]
+  }, {
+    "resources": ["firebase-app-compat.js", "firebase-database-compat.js"],
+    "matches": ["<all_urls>"]
+  }
+  ],
+  "content_security_policy": {
+    "extension_pages": "object-src 'self'; script-src 'self'"
+    
+  },
   "action": {
     "default_popup": "index.html",
     "defuault_icon": {

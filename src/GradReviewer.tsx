@@ -1,997 +1,1295 @@
 import React from "react";
 import { CheckTableContext } from "./FetchGradeTable";
+import { RulesContext } from "./SelectGradReviewRule";
 import Button from "react-bootstrap/Button";
+import { renderToString } from "react-dom/server";
+import "bootstrap/dist/css/bootstrap.min.css";
+// import html2canvas from "html2canvas";
+// import jsPDF from "jspdf";
 
-let commonObj: any;
-let majorObj: any;
-
-export interface CategoryCourses {
-  [key: string]: Array<string>;
-}
-export interface CategoryCredits {
-  [key: string]: number;
-}
-
-function getAllCategoryCourse(obj: any, data: any) {
-  let categoryCourses: CategoryCourses = {};
-  let categoryCredits: CategoryCredits = {};
-  obj["規則"].forEach((rule: any) => {
-    // console.log(rule);
-    categoryCourses[rule[0]] = [];
-    categoryCredits[rule[0]] = 0;
-  });
-
-  // 抓出所有創意與創業課程
-  // 但有些課程可互相抵修的應該不能個別算學分
-  let checkedRule = new Set();
-  //   console.log("data: ", data);
-  data.forEach((course: any) => {
-    obj["規則"].forEach((rule: any) => {
-      rule[2].forEach((r: any) => {
-        // 因為有可互相抵修的課程(使用兩個 array 包住，所以取兩層)，使用 includes
-        if (obj["可抵修"] === true) {
-          if (r.includes(course.name) && !checkedRule.has(r)) {
-            categoryCourses[rule[0]].push(course.name);
-            categoryCredits[rule[0]] += parseInt(course.credits);
-            checkedRule.add(r);
-          }
-        } else if (obj["可抵修"] === false) {
-          if (course.name.match(r)) {
-            if (categoryCourses[rule[0]].includes(course.name)) {
-              return;
-            }
-            // console.log(course.name);
-            categoryCourses[rule[0]].push(course.name);
-            categoryCredits[rule[0]] += parseInt(course.credits);
-          }
-        } else if (obj["可抵修"] === "en") {
-          if (course.name.match(/LN29((?!00)[0-4]\d|50)/gm)) {
-            categoryCourses[rule[0]].push(course.name);
-            categoryCredits[rule[0]] += parseInt(course.credits);
-          }
-        }
-      });
-    });
-  });
-  return [categoryCourses, categoryCredits];
+interface Course {
+  courseID: string;
+  courseName: string;
+  courseType: string;
+  courseCredit: number;
+  courseGrade: number;
 }
 
-function validateCourses(obj: { 課程: any; 學分: any; 規則: any }) {
-  let validation: any = [];
-  let totalCredits: number = 0;
-  let pass: boolean = true;
-
-  obj["規則"].forEach((rule: any) => {
-    totalCredits += obj["學分"][rule[0]];
-    if (obj["學分"][rule[0]] >= rule[1]) {
-      validation.push({
-        name: rule[0],
-        valid: true,
-        credits: obj["學分"][rule[0]],
-        courses: obj["課程"][rule[0]],
-      });
-    } else {
-      pass = false;
-      validation.push({
-        name: rule[0],
-        valid: false,
-        credits: obj["學分"][rule[0]],
-        courses: obj["課程"][rule[0]],
-      });
-    }
-  });
-  return [validation, totalCredits, pass];
+interface Rule {
+  courseKeywords: string[];
+  creditRequirement: number;
 }
 
-function clearCourses(obj: any, data: any) {
-  let arr = Object.values(obj);
-  data = Object.values(data);
-  arr.forEach((category: any) => {
-    // console.log("clear course data: ", data);
-    // console.log("clear course category: ", category);
-    data = data.filter((course: any) => {
-      return !category.includes(course.name);
-    });
-  });
-  // console.log(data);
-  return data;
-}
-// check total credits
-function checkTotalCredits(checkTableData: any) {
-  let validation = 0;
-  for (let i = 0; i < checkTableData.length; i++) {
-    // if (checkTableData[i].grades === "免修") {
-    //   return;
-    // }
-    validation += parseInt(checkTableData[i].credits);
-  }
-  let final = validation >= 128;
-  validation < 128
-    ? console.log("總學分：不通過，低於 128")
-    : console.log("總學分：通過");
+type IsPassedFlagsDict = {
+  [key: string]: boolean;
+};
 
-  commonObj["總學分"] = { final, validation };
-}
+type CriteriaPassedCoursesDict = {
+  [key: string]: Course[];
+};
 
-// check creative-and-startup credits
-function checkCreativeAndStartupCredits(
-  data: any,
-  rules: { [key: string]: any }
-) {
-  console.log("check creative-and-startup credits");
-  console.log(rules);
-  console.log("data in check creative", data);
-  let creativeAndStartupRules = rules["rule"]["創意與創業學分學程"];
-  console.log(creativeAndStartupRules);
-
-  let [categoryCourses, categoryCredits] = getAllCategoryCourse(
-    {
-      規則: creativeAndStartupRules,
-      可抵修: true,
-    },
-    data
-  );
-
-  console.log(`符合的課程：`, categoryCourses);
-  console.log(`符合的學分：`, categoryCredits);
-
-  let [validation, totalCredits, pass] = validateCourses({
-    課程: categoryCourses,
-    學分: categoryCredits,
-    規則: creativeAndStartupRules,
-  });
-
-  console.log(validation);
-
-  let final = totalCredits >= 15 && pass;
-  final
-    ? console.log("創意與創業學分學程：通過")
-    : console.log("創意與創業學分學程：不通過", "已修", categoryCourses);
-
-  commonObj["創意與創業學分學程"] = { final, validation };
-}
-
-// check school-required credits 非重複計算
-function checkSchoolRequiredCredits(data: any, rules: { [key: string]: any }) {
-  let schoolRequiredRules = rules["rule"]["校訂必修"];
-  console.log(schoolRequiredRules);
-
-  let [categoryCourses, categoryCredits] = getAllCategoryCourse(
-    {
-      規則: schoolRequiredRules,
-      可抵修: false,
-    },
-    data
-  );
-
-  let tmp: any = categoryCourses["進階體育"];
-  categoryCourses["進階體育"] = tmp.filter(
-    (course: any) => course !== "PE1011" && course !== "PE1022"
-  );
-
-  console.log(`符合的課程：`, categoryCourses);
-  console.log(`符合的學分：`, categoryCredits);
-
-  let [validation, totalCredits, pass] = validateCourses({
-    課程: categoryCourses,
-    學分: categoryCredits,
-    規則: schoolRequiredRules,
-  });
-
-  let checkCourseNumbers = [
-    ["體育", 2],
-    ["進階體育", 3],
-    ["服務學習課程", 2],
-    ["通識", 1, "CC"],
-  ];
-  checkCourseNumbers.forEach((courseNumber: any[]) => {
-    if (Object.keys(categoryCourses[courseNumber[0]]) < courseNumber[1]) {
-      pass = false;
-      let tmp = validation.findIndex((v: any) => v.name === courseNumber[0]);
-      if (tmp) {
-        validation[tmp] = {
-          name: courseNumber[0],
-          valid: false,
-          response: `${courseNumber[0]}不符合規定，已修習 ${
-            categoryCourses[courseNumber[0]]
-          } 的課程`,
+type ResultDict = {
+  [key: string]:
+    | {
+        isPassed: boolean;
+        criteriaPassedCourses: Course[];
+      }
+    | {
+        [key: string]: {
+          isPassed: boolean;
+          criteriaPassedCourses: Course[];
         };
       }
+    | boolean;
+};
+
+function reviewCommonRequired(
+  courseList: Course[],
+  rules: { [key: string]: Rule }
+) {
+  let result: ResultDict = {};
+  let isPassedFlags: IsPassedFlagsDict = {};
+  let criteriaPassedCourses: CriteriaPassedCoursesDict = {};
+  let residualCredits = 0;
+  for (const requiredCourse in rules) {
+    // PE is a special case, it only requires 5 courses instead of a specific amount of credits
+    if (requiredCourse === "PE") {
+      const ruleKeywords = rules[requiredCourse].courseKeywords;
+      const recognizedCourses = courseList.filter((course) => {
+        return ruleKeywords
+          .map((keyword: string) => new RegExp(keyword))
+          .some((regex: RegExp) => regex.test(course.courseID));
+      });
+
+      criteriaPassedCourses[requiredCourse] = recognizedCourses;
+
+      if (recognizedCourses.length >= 5) {
+        isPassedFlags[requiredCourse] = true;
+      } else {
+        isPassedFlags[requiredCourse] = false;
+      }
+
+      result[requiredCourse] = {
+        isPassed: isPassedFlags[requiredCourse],
+        criteriaPassedCourses: criteriaPassedCourses[requiredCourse],
+      };
+      continue;
     }
-  });
+    const ruleKeywords = rules[requiredCourse].courseKeywords;
+    const ruleCredit = rules[requiredCourse].creditRequirement;
+    let recognizedCourses = courseList.filter((course) => {
+      return ruleKeywords
+        .map((keyword: string) => new RegExp(keyword))
+        .some((regex: RegExp) => regex.test(course.courseID));
+    });
+    if (recognizedCourses.length === 0) {
+      isPassedFlags[requiredCourse] = false;
+      continue;
+    }
 
-  console.log(validation);
-  console.log(`校訂必修總學分：${totalCredits}`);
+    criteriaPassedCourses[requiredCourse] = recognizedCourses;
 
-  let final = pass;
-  final
-    ? console.log("校訂必修：通過")
-    : console.log("校訂必修：不通過", "已修", categoryCourses);
-
-  commonObj["校訂必修"] = { final, validation };
-
-  return clearCourses(categoryCourses, data);
-}
-
-// check academy-required credits 非重複計算
-function checkAcademyRequiredCredits(data: any, rules: { [key: string]: any }) {
-  let academyRequiredRules = rules["rule"]["院訂必修"];
-  console.log(academyRequiredRules);
-
-  let [categoryCourses, categoryCredits] = getAllCategoryCourse(
-    {
-      規則: academyRequiredRules,
-      可抵修: false,
-    },
-    data
+    let recognizedCredits = recognizedCourses.reduce(
+      (sum, course) => sum + course.courseCredit,
+      0
+    );
+    if (recognizedCredits >= ruleCredit) {
+      isPassedFlags[requiredCourse] = true;
+      // General Education is a special case, the exceeded credits will be counted as general elective credits
+      if (requiredCourse === "generalEducation") {
+        residualCredits = recognizedCredits - ruleCredit;
+      }
+    } else {
+      isPassedFlags[requiredCourse] = false;
+    }
+    result[requiredCourse] = {
+      isPassed: isPassedFlags[requiredCourse],
+      criteriaPassedCourses: criteriaPassedCourses[requiredCourse],
+    };
+  }
+  const isRulePassed = Object.values(isPassedFlags).every(
+    (value) => value === true
   );
-
-  console.log(`符合的課程：`, categoryCourses);
-  console.log(`符合的學分：`, categoryCredits);
-
-  let [validation, totalCredits, pass] = validateCourses({
-    課程: categoryCourses,
-    學分: categoryCredits,
-    規則: academyRequiredRules,
-  });
-
-  console.log(validation);
-  console.log(`院訂必修總學分：${totalCredits}`);
-
-  let final = pass;
-  final
-    ? console.log("院訂必修：通過")
-    : console.log("院訂必修：不通過", "已修", categoryCourses);
-
-  commonObj["院訂必修"] = { final, validation };
-
-  return clearCourses(categoryCourses, data);
+  result["isRulePassed"] = isRulePassed;
+  console.log("passFlags", isPassedFlags);
+  console.log("residualCredits", residualCredits);
+  console.log("criteriaPassedCourses", criteriaPassedCourses);
+  console.log("result", result);
+  return result;
 }
 
-// check academy-elective credits
-function checkAcademyElectiveCredits(data: any, rules: { [key: string]: any }) {
-  let academyElectiveRules = rules["rule"]["院訂必選"];
-  console.log(academyElectiveRules);
-
-  let [categoryCourses, categoryCredits] = getAllCategoryCourse(
-    {
-      規則: academyElectiveRules,
-      可抵修: true,
-    },
-    data
-  );
-
-  console.log(`符合的課程：`, categoryCourses);
-  console.log(`符合的學分：`, categoryCredits);
-
-  let [validation, totalCredits] = validateCourses({
-    課程: categoryCourses,
-    學分: categoryCredits,
-    規則: academyElectiveRules,
-  });
-
-  console.log(validation);
-
-  let final = totalCredits >= 6;
-  final
-    ? console.log("院訂必選：通過")
-    : console.log("院訂必選：不通過", "已修", categoryCourses);
-
-  commonObj["院訂必選"] = { final, validation };
-}
-
-// check english-required credits
-function checkEnglishRequiredCredits(data: any, rules: { [key: string]: any }) {
-  let englishElectiveRules = rules["rule"]["英文必選"];
-  console.log(englishElectiveRules);
-
-  let [categoryCourses, categoryCredits] = getAllCategoryCourse(
-    {
-      規則: englishElectiveRules,
-      可抵修: "en",
-    },
-    data
-  );
-
-  console.log(`符合的課程：`, categoryCourses);
-  console.log(`符合的學分：`, categoryCredits);
-
-  let [validation, totalCredits, pass] = validateCourses({
-    課程: categoryCourses,
-    學分: categoryCredits,
-    規則: englishElectiveRules,
-  });
-
-  console.log(validation);
-  console.log(`英文必選總學分：${totalCredits}`);
-
-  let final = totalCredits >= 2 && pass;
-  final
-    ? console.log("英文必選：通過")
-    : console.log("英文必選：不通過", "已修", categoryCourses);
-
-  commonObj["英文必選"] = { final, validation };
-
-  return clearCourses(categoryCourses, data);
-}
-
-// CS-major
-// check CS-major credits
-function checkCSMajorCredits(data: any, rules: { [key: string]: any }) {
-  majorObj["資工專長"] = {};
-  data = checkCSMajorRequiredCredits(data, rules);
-  checkCSMajorElectiveCredits(data, rules);
-}
-
-// check CS-major-required credits
-function checkCSMajorRequiredCredits(data: any, rules: { [key: string]: any }) {
-  let CSMajorRequiredRules = [rules["rule"]["資工專長"][0]];
-
-  console.log(CSMajorRequiredRules);
-
-  let [categoryCourses, categoryCredits] = getAllCategoryCourse(
-    {
-      規則: CSMajorRequiredRules,
-      可抵修: true,
-    },
-    data
-  );
-
-  console.log(`符合的課程：`, categoryCourses);
-  console.log(`符合的學分：`, categoryCredits);
-
-  let [validation, totalCredits, pass] = validateCourses({
-    課程: categoryCourses,
-    學分: categoryCredits,
-    規則: CSMajorRequiredRules,
-  });
-
-  console.log(validation);
-  console.log(`資工專長必修總學分：${totalCredits}`);
-
-  let final = pass;
-  final
-    ? console.log("資工專長必修：通過")
-    : console.log("資工專長必修：不通過", "已修", categoryCourses);
-
-  majorObj["資工專長"]["必修"] = { final, validation };
-  return clearCourses(categoryCourses, data);
-}
-
-// check CS-major-elective credits
-function checkCSMajorElectiveCredits(data: any, rules: { [key: string]: any }) {
-  let CSMajorElectiveRules = [rules["rule"]["資工專長"][1]];
-
-  console.log(CSMajorElectiveRules);
-
-  let [categoryCourses, categoryCredits] = getAllCategoryCourse(
-    {
-      規則: CSMajorElectiveRules,
-      可抵修: false,
-    },
-    data
-  );
-
-  console.log(`符合的課程：`, categoryCourses);
-  console.log(`符合的學分：`, categoryCredits);
-
-  let [validation, totalCredits, pass] = validateCourses({
-    課程: categoryCourses,
-    學分: categoryCredits,
-    規則: CSMajorElectiveRules,
-  });
-
-  console.log(validation);
-  console.log(`資工專長-其他選修總學分：${totalCredits}`);
-
-  let final = pass;
-  final
-    ? console.log("資工專長-其他選修：通過")
-    : console.log("資工專長-其他選修：不通過", "已修", categoryCourses);
-
-  majorObj["資工專長"]["其他選修"] = { final, validation };
-}
-
-// network-major
-// check network-major credits
-function checkNetworkMajorCredits(data: any, rules: { [key: string]: any }) {
-  majorObj["網路專長"] = {};
-  data = checkNetworkMajorRequiredCredits(data, rules);
-  checkNetworkMajorElectiveCredits(data, rules);
-}
-
-// check network-major-required credits
-function checkNetworkMajorRequiredCredits(
-  data: any,
-  rules: { [key: string]: any }
+function reviewCreativityAndEntrepreneurship(
+  courseList: Course[],
+  rules: { [key: string]: { [key: string]: Rule } | any }
 ) {
-  let networkMajorRequiredRules = [rules["rule"]["網路專長"][0]];
+  let result: ResultDict = {};
+  let isPassedFlags: IsPassedFlagsDict = {};
+  let totalPassedCourses: CriteriaPassedCoursesDict = {};
+  let totalCreditRequirement: number = rules["creditRequirement"];
+  let totalRecognizedCredits: number = 0;
 
-  console.log(networkMajorRequiredRules);
+  for (const criteria in rules) {
+    if (criteria === "creditRequirement") continue;
 
-  let [categoryCourses, categoryCredits] = getAllCategoryCourse(
-    {
-      規則: networkMajorRequiredRules,
-      可抵修: true,
-    },
-    data
-  );
+    let criteriaRcognizedCredits: number = 0;
+    let ruleCredit: number = rules[criteria].creditRequirement;
+    let criteriaPassedCourses: Course[] = [];
 
-  console.log(`符合的課程：`, categoryCourses);
-  console.log(`符合的學分：`, categoryCredits);
+    for (const item in rules[criteria]) {
+      if (item === "creditRequirement") continue;
 
-  let [validation, totalCredits, pass] = validateCourses({
-    課程: categoryCourses,
-    學分: categoryCredits,
-    規則: networkMajorRequiredRules,
-  });
+      let ruleKeywords = rules[criteria][item].courseKeywords;
+      let recognizedCourses = courseList.filter((course) => {
+        return ruleKeywords
+          .map((keyword: string) => new RegExp(keyword))
+          .some((regex: RegExp) => regex.test(course.courseID));
+      });
 
-  console.log(validation);
-  console.log(`網路專長必修總學分：${totalCredits}`);
+      // If there are multiple equivalent courses, only the one with the highest credit is counted
+      if (criteria === "creativityFoundation" && recognizedCourses.length > 1) {
+        recognizedCourses.sort((a, b) => b.courseCredit - a.courseCredit); // Sort the courses by credit in descending order
+        recognizedCourses = recognizedCourses.slice(0, 1); // Only the first course is counted as those are equivalent courses and others are ignored
+      }
+      criteriaPassedCourses = criteriaPassedCourses.concat(recognizedCourses);
+    }
+    criteriaRcognizedCredits = criteriaPassedCourses.reduce(
+      (sum, course) => sum + course.courseCredit,
+      0
+    );
 
-  let final = pass;
-  final
-    ? console.log("網路專長必修：通過")
-    : console.log("網路專長必修：不通過", "已修", categoryCourses);
+    totalRecognizedCredits += criteriaRcognizedCredits;
+    totalPassedCourses[criteria] = criteriaPassedCourses;
+    if (criteriaRcognizedCredits >= ruleCredit) {
+      isPassedFlags[criteria] = true;
+    } else {
+      isPassedFlags[criteria] = false;
+    }
 
-  majorObj["網路專長"]["必修"] = { final, validation };
-
-  return clearCourses(categoryCourses, data);
-}
-
-// check network-major-elective credits
-function checkNetworkMajorElectiveCredits(
-  data: any,
-  rules: { [key: string]: any }
-) {
-  let networkMajorElectiveRules = [rules["rule"]["網路專長"][1]];
-
-  console.log(networkMajorElectiveRules);
-
-  let [categoryCourses, categoryCredits] = getAllCategoryCourse(
-    {
-      規則: networkMajorElectiveRules,
-      可抵修: false,
-    },
-    data
-  );
-
-  console.log(`符合的課程：`, categoryCourses);
-  console.log(`符合的學分：`, categoryCredits);
-
-  let [validation, totalCredits, pass] = validateCourses({
-    課程: categoryCourses,
-    學分: categoryCredits,
-    規則: networkMajorElectiveRules,
-  });
-
-  console.log(validation);
-  console.log(`網路專長-其他選修總學分：${totalCredits}`);
-
-  let final = pass;
-  final
-    ? console.log("網路專長-其他選修：通過")
-    : console.log("網路專長-其他選修：不通過", "已修", categoryCourses);
-
-  majorObj["網路專長"]["其他選修"] = { final, validation };
-}
-
-// CO-major
-// check CO-major credits
-function checkCOMajorCredits(data: any, rules: { [key: string]: any }) {
-  majorObj["通訊專長"] = {};
-  data = checkCOMajorRequiredCredits(data, rules);
-  checkCOMajorElectiveCredits(data, rules);
-}
-
-// check CO-major-required credits
-function checkCOMajorRequiredCredits(data: any, rules: { [key: string]: any }) {
-  let COMajorRequiredRules = [
-    rules["rule"]["通訊專長"][0],
-    rules["rule"]["通訊專長"][1],
-  ];
-
-  console.log(COMajorRequiredRules);
-
-  let [categoryCourses, categoryCredits] = getAllCategoryCourse(
-    {
-      規則: COMajorRequiredRules,
-      可抵修: true,
-    },
-    data
-  );
-
-  console.log(`符合的課程：`, categoryCourses);
-  console.log(`符合的學分：`, categoryCredits);
-
-  let [validation, totalCredits, pass] = validateCourses({
-    課程: categoryCourses,
-    學分: categoryCredits,
-    規則: COMajorRequiredRules,
-  });
-
-  console.log(validation);
-  console.log(`通訊專長-必修必選總學分：${totalCredits}`);
-
-  let final = pass;
-  final
-    ? console.log("通訊專長-必修必選：通過")
-    : console.log("通訊專長-必修必選：不通過", "已修", categoryCourses);
-
-  majorObj["通訊專長"]["必修"] = { final, validation };
-
-  return clearCourses(categoryCourses, data);
-}
-
-// check CO-major-elective credits
-function checkCOMajorElectiveCredits(data: any, rules: { [key: string]: any }) {
-  let COMajorElectiveRules = [rules["rule"]["通訊專長"][2]];
-
-  console.log(COMajorElectiveRules);
-
-  let [categoryCourses, categoryCredits] = getAllCategoryCourse(
-    {
-      規則: COMajorElectiveRules,
-      可抵修: false,
-    },
-    data
-  );
-
-  console.log(`符合的課程：`, categoryCourses);
-  console.log(`符合的學分：`, categoryCredits);
-
-  let [validation, totalCredits, pass] = validateCourses({
-    課程: categoryCourses,
-    學分: categoryCredits,
-    規則: COMajorElectiveRules,
-  });
-
-  console.log(validation);
-  console.log(`通訊專長-其他選修總學分：${totalCredits}`);
-
-  let final = pass;
-  final
-    ? console.log("通訊專長-其他選修：通過")
-    : console.log("通訊專長-其他選修：不通過", "已修", categoryCourses);
-
-  majorObj["通訊專長"]["其他選修"] = { final, validation };
-}
-
-// EE-major
-// check EE-major credits
-function checkEEMajorCredits(data: any, rules: { [key: string]: any }) {
-  majorObj["電機專長"] = {};
-  data = checkEEMajorRequiredCredits(data, rules);
-  data = checkEEMajorExperienceCredits(data, rules);
-  data = checkEEMajorMarkCourseCredits(data, rules);
-  checkEEMajorElectiveCredits(data, rules);
-}
-
-// check EE-major-required credits
-function checkEEMajorRequiredCredits(data: any, rules: { [key: string]: any }) {
-  let EEMajorRequiredRules = [rules["rule"]["電機專長"][0]];
-
-  console.log(EEMajorRequiredRules);
-
-  let [categoryCourses, categoryCredits] = getAllCategoryCourse(
-    {
-      規則: EEMajorRequiredRules,
-      可抵修: true,
-    },
-    data
-  );
-
-  console.log(`符合的課程：`, categoryCourses);
-  console.log(`符合的學分：`, categoryCredits);
-
-  let [validation, totalCredits, pass] = validateCourses({
-    課程: categoryCourses,
-    學分: categoryCredits,
-    規則: EEMajorRequiredRules,
-  });
- 
-
-  console.log(validation);
-  console.log(`電機專長必修總學分：${totalCredits}`);
-
-  let final = pass;
-  final
-    ? console.log("電機專長必修：通過")
-    : console.log("電機專長必修：不通過", "已修", categoryCourses);
-
-  majorObj["電機專長"]["必修"] = { final, validation };
-
-  return clearCourses(categoryCourses, data);
-}
-
-// check EE-major-experience credits
-function checkEEMajorExperienceCredits(
-  data: any,
-  rules: { [key: string]: any }
-) {
-  let EEMajorExperienceRules = rules["rule"]["電機專長-實驗群組"];
-
-  console.log(EEMajorExperienceRules);
-
-  let [categoryCourses, categoryCredits] = getAllCategoryCourse(
-    {
-      規則: EEMajorExperienceRules,
-      可抵修: true,
-    },
-    data
-  );
-
-  console.log(`符合的課程：`, categoryCourses);
-  console.log(`符合的學分：`, categoryCredits);
-
-  let [validation, totalCredits, pass] = validateCourses({
-    課程: categoryCourses,
-    學分: categoryCredits,
-    規則: EEMajorExperienceRules,
-  });
-
-   //add cross realm check here
-  let isCrossRealm = false;
-  if(validation[0].valid && validation[1].valid && validation[2].valid){
-    isCrossRealm = true;
+    result[criteria] = {
+      isPassed: isPassedFlags[criteria],
+      criteriaPassedCourses: totalPassedCourses[criteria],
+    };
   }
 
-  console.log(validation);
-  console.log(`電機專長-實驗群組總學分：${totalCredits}`);
-
-  let final = pass&&isCrossRealm;
-  final
-    ? console.log("電機專長-實驗群組：通過")
-    : console.log("電機專長-實驗群組：不通過","跨三類:",isCrossRealm, "已修", categoryCourses);
-
-  majorObj["電機專長"]["實驗群組"] = { final, validation };
-
-  return clearCourses(categoryCourses, data);
-}
-
-// check EE-major-markCourse credits
-function checkEEMajorMarkCourseCredits(
-  data: any,
-  rules: { [key: string]: any }
-) {
-  let EEMajorMarkCourseRules = rules["rule"]["電機專長-記號課程"];
-
-  console.log(EEMajorMarkCourseRules);
-
-  let [categoryCourses, categoryCredits] = getAllCategoryCourse(
-    {
-      規則: EEMajorMarkCourseRules,
-      可抵修: true,
-    },
-    data
-  );
-
-  console.log(`符合的課程：`, categoryCourses);
-  console.log(`符合的學分：`, categoryCredits);
-
-  let [validation, totalCredits] = validateCourses({
-    課程: categoryCourses,
-    學分: categoryCredits,
-    規則: EEMajorMarkCourseRules,
-  });
-
-  console.log(validation);
-
-  let classes = 0;
-  validation.forEach((result: any) => {
-    if (result.valid) {
-      classes++;
-    }
-  });
-
-  let final = totalCredits >= 18 && classes >= 3;
-  final
-    ? console.log("電機專長-記號課程：通過")
-    : console.log("電機專長-記號課程：不通過", "已修", categoryCourses);
-
-  majorObj["電機專長"]["記號課程"] = { final, validation };
-
-  return clearCourses(categoryCourses, data);
-}
-
-// check EE-major-elective credits
-function checkEEMajorElectiveCredits(data: any, rules: { [key: string]: any }) {
-  if (rules["rule"]["電機專長"][1] === undefined) {
-    console.log("電機其他選修 undefined");
-    return;
+  if (totalRecognizedCredits >= totalCreditRequirement) {
+    isPassedFlags["CreativityAndEntrepreneurshipProgram"] = true;
+  } else {
+    isPassedFlags["CreativityAndEntrepreneurshipProgram"] = false;
   }
-  let EEMajorElectiveRules = [rules["rule"]["電機專長"][1]];
-  console.log(EEMajorElectiveRules);
 
-  let [categoryCourses, categoryCredits] = getAllCategoryCourse(
-    {
-      規則: EEMajorElectiveRules,
-      可抵修: false,
-    },
-    data
+  const isRulePassed = Object.values(isPassedFlags).every(
+    (value) => value === true
   );
+  result["isRulePassed"] = isRulePassed;
 
-  console.log(`符合的課程：`, categoryCourses);
-  console.log(`符合的學分：`, categoryCredits);
-
-  let [validation, totalCredits, pass] = validateCourses({
-    課程: categoryCourses,
-    學分: categoryCredits,
-    規則: EEMajorElectiveRules,
-  });
-
-  console.log(validation);
-  console.log(`電機專長-其他選修總學分：${totalCredits}`);
-
-  let final = pass;
-  final
-    ? console.log("電機專長-其他選修：通過")
-    : console.log("電機專長-其他選修：不通過", "已修", categoryCourses);
-
-  majorObj["電機專長"]["其他選修"] = { final, validation };
+  console.log("Creativity And Entrepreneurship Result", result);
+  return result;
 }
 
-async function validation(checkTable: any, rules: { [key: string]: any }) {
-  // 有 return => 不可重複計算
-  commonObj = {};
-  majorObj = {};
-  console.log("<===========================================================>");
-  let data = structuredClone(checkTable);
-  console.log("<===========================================================>");
-  await checkTotalCredits(data["checkTable"]);
-  console.log("<===========================================================>");
-  await checkCreativeAndStartupCredits(data["checkTable"], rules);
-  console.log("<===========================================================>");
-  data = await checkSchoolRequiredCredits(data["checkTable"], rules);
-  console.log("<===========================================================>");
-  data = await checkAcademyRequiredCredits(data, rules);
-  console.log("<===========================================================>");
-  await checkAcademyElectiveCredits(data, rules);
-  console.log("<===========================================================>");
-  data = await checkEnglishRequiredCredits(data, rules);
-  console.log("<===========================================================>");
-
-  // 各自用自己的，因為會要去掉重複的課程
-  let CSData = structuredClone(data);
-  await checkCSMajorCredits(CSData, rules);
-  console.log("<===========================================================>");
-  let NetWorkData = structuredClone(data);
-  await checkNetworkMajorCredits(NetWorkData, rules);
-  console.log("<===========================================================>");
-  let COData = structuredClone(data);
-  await checkCOMajorCredits(COData, rules);
-  console.log("<===========================================================>");
-  let EEData = structuredClone(data);
-  await checkEEMajorCredits(EEData, rules);
-  console.log("<===========================================================>");
-  console.log("commomOBj: ")
-  console.log(commonObj);
-  console.log(majorObj);
+function reviewCollegeRequired(
+  courseList: Course[],
+  rules: { [key: string]: Rule }
+) {
+  let result: ResultDict = {};
+  let isPassedFlags: IsPassedFlagsDict = {};
+  let criteriaPassedCourses: CriteriaPassedCoursesDict = {};
+  for (const requiredCourse in rules) {
+    const ruleKeywords = rules[requiredCourse].courseKeywords;
+    const ruleCredit = rules[requiredCourse].creditRequirement;
+    let recognizedCourses = courseList.filter((course) => {
+      return ruleKeywords
+        .map((keyword: string) => new RegExp(keyword))
+        .some((regex: RegExp) => regex.test(course.courseID));
+    });
+    if (recognizedCourses.length === 0) {
+      isPassedFlags[requiredCourse] = false;
+      continue;
+    }
+    criteriaPassedCourses[requiredCourse] = recognizedCourses;
+    let recognizedCredits = recognizedCourses.reduce(
+      (sum, course) => sum + course.courseCredit,
+      0
+    );
+    if (recognizedCredits >= ruleCredit) {
+      isPassedFlags[requiredCourse] = true;
+    } else {
+      isPassedFlags[requiredCourse] = false;
+    }
+    result[requiredCourse] = {
+      isPassed: isPassedFlags[requiredCourse],
+      criteriaPassedCourses: criteriaPassedCourses[requiredCourse],
+    };
+  }
+  const isRulePassed = Object.values(isPassedFlags).every(
+    (value) => value === true
+  );
+  result["isRulePassed"] = isRulePassed;
+  // console.log("CollegeRequiredPassFlags", isPassedFlags);
+  // console.log("CollegeRequiredCriteriaPassedCourses", criteriaPassedCourses);
+  console.log("CollegeRequiredResult", result);
+  return result;
 }
 
-// generate uuID without '-'
-function uuid() {
-  let id = Date.now();
+function reviewEnglishRequiredElective(
+  courseList: Course[],
+  rules: { [key: string]: Rule }
+) {
+  let result: ResultDict = {};
+  let isPassedFlags: IsPassedFlagsDict = {};
+  let criteriaPassedCourses: CriteriaPassedCoursesDict = {};
+  for (const rule in rules) {
+    const ruleKeywords = rules[rule].courseKeywords;
+    const ruleCredit = rules[rule].creditRequirement;
+    const recognizedCourses = courseList.filter((course) => {
+      return ruleKeywords
+        .map((keyword: string) => new RegExp(keyword))
+        .some((regex: RegExp) => regex.test(course.courseID));
+    });
+    criteriaPassedCourses[rule] = recognizedCourses;
+    let recognizedCredits = recognizedCourses.reduce(
+      (sum, course) => sum + course.courseCredit,
+      0
+    );
+    if (recognizedCredits >= ruleCredit) {
+      isPassedFlags[rule] = true;
+    } else {
+      isPassedFlags[rule] = false;
+    }
+    result[rule] = {
+      isPassed: isPassedFlags[rule],
+      criteriaPassedCourses: criteriaPassedCourses[rule],
+    };
+  }
+  const isRulePassed = Object.values(isPassedFlags).every(
+    (value) => value === true
+  );
+  result["isRulePassed"] = isRulePassed;
+  console.log("EnglishRequiredElectiveResult", result);
+  return result;
+}
+
+function reviewCollegeRequiredElective(
+  courseList: Course[],
+  rules: { [key: string]: Rule | any }
+) {
+  let result: ResultDict = {};
+  let isPassedFlags: IsPassedFlagsDict = {};
+  let criteriaRecognizedCredits: number = 0;
+  let criteriaCredits: number = rules["creditRequirement"];
+  let criteriaPassedCourses: CriteriaPassedCoursesDict = {};
+  criteriaPassedCourses["RecognizedElectiveCourses"] = [];
+  for (const eligibleCourse in rules) {
+    if (eligibleCourse === "creditRequirement") continue;
+
+    const ruleKeywords = rules[eligibleCourse].courseKeywords;
+    let recognizedCourses = courseList.filter((course) => {
+      return ruleKeywords
+        .map((keyword: string) => new RegExp(keyword))
+        .some((regex: RegExp) => regex.test(course.courseID));
+    });
+
+    if (recognizedCourses.length > 1) {
+      recognizedCourses.sort((a, b) => b.courseCredit - a.courseCredit); // Sort the courses by credit in descending order
+      recognizedCourses = recognizedCourses.slice(0, 1); // Only the first course is counted as those are equivalent courses and others are ignored
+    }
+    criteriaPassedCourses["RecognizedElectiveCourses"] =
+      criteriaPassedCourses["RecognizedElectiveCourses"].concat(
+        recognizedCourses
+      );
+  }
+  criteriaRecognizedCredits = criteriaPassedCourses[
+    "RecognizedElectiveCourses"
+  ].reduce((sum, course) => sum + course.courseCredit, 0);
+  if (criteriaRecognizedCredits >= criteriaCredits) {
+    isPassedFlags["CollegeRequiredElective"] = true;
+  } else {
+    isPassedFlags["CollegeRequiredElective"] = false;
+  }
+  result["CollegeRequiredElective"] = {
+    isPassed: isPassedFlags["CollegeRequiredElective"],
+    criteriaPassedCourses: criteriaPassedCourses["RecognizedElectiveCourses"],
+  };
+  result["isRulePassed"] = isPassedFlags["CollegeRequiredElective"];
+  console.log("CollegeRequiredElectiveResult", result);
+  return result;
+}
+
+function reviewServiceLearning(
+  courseList: Course[],
+  rules: { [key: string]: Rule }
+) {
+  let result: ResultDict = {};
+  let isPassedFlags: IsPassedFlagsDict = {};
+  let criteriaPassedCourses: CriteriaPassedCoursesDict = {};
+  for (const rule in rules) {
+    const ruleKeywords = rules[rule].courseKeywords;
+    const recognizedCourses = courseList.filter((course) => {
+      return ruleKeywords
+        .map((keyword: string) => new RegExp(keyword))
+        .some((regex: RegExp) => regex.test(course.courseID));
+    });
+    criteriaPassedCourses[rule] = recognizedCourses;
+  }
+  if (criteriaPassedCourses.SL.length >= 2) {
+    isPassedFlags["serviceLearning"] = true;
+  } else {
+    isPassedFlags["serviceLearning"] = false;
+  }
+  result["serviceLearning"] = {
+    isPassed: isPassedFlags["serviceLearning"],
+    criteriaPassedCourses: criteriaPassedCourses["SL"],
+  };
+  result["isRulePassed"] = isPassedFlags["serviceLearning"];
+  console.log("ServiceLearningResult", result);
+  return result;
+  // console.log("ServiceLearningPassFlags", isPassedFlags);
+  // console.log("ServiceLearningCriteriaPassedCourses", criteriaPassedCourses);
+}
+
+function reviewCSMajor(courseList: Course[], rules: { [key: string]: Rule }) {
+  let result: ResultDict = {};
+  let isPassedFlags: IsPassedFlagsDict = {};
+  let criteriaPassedCourses: CriteriaPassedCoursesDict = {};
+  for (const rule in rules) {
+    if (rule === "CEECSElective") {
+      // CEECS Elective is a special case, it should consider both the CEECS courses keywords and the courses' type as elctive
+      const ruleKeywords = rules[rule].courseKeywords;
+      let recognizedCourses = courseList.filter((course) => {
+        return ruleKeywords
+          .map((keyword: string) => new RegExp(keyword))
+          .some(
+            (regex: RegExp) =>
+              regex.test(course.courseID) && course.courseType === "選修"
+          ); // Adding required course type checking
+      });
+      criteriaPassedCourses[rule] = recognizedCourses;
+      let recognizedCredit = recognizedCourses.reduce(
+        (sum, course) => sum + course.courseCredit,
+        0
+      );
+      if (recognizedCredit >= rules[rule].creditRequirement) {
+        isPassedFlags[rule] = true;
+      } else {
+        isPassedFlags[rule] = false;
+      }
+      result[rule] = {
+        isPassed: isPassedFlags[rule],
+        criteriaPassedCourses: criteriaPassedCourses[rule],
+      };
+      continue;
+    }
+    // Other rules are followed the same pattern as the general required courses rule
+    const ruleKeywords = rules[rule].courseKeywords;
+    let recognizedCourses = courseList.filter((course) => {
+      return ruleKeywords
+        .map((keyword: string) => new RegExp(keyword))
+        .some((regex: RegExp) => regex.test(course.courseID));
+    });
+    // If there are no recognized courses, the required course is not passed, continue to the next required course but set the flag to false
+    if (recognizedCourses.length === 0) {
+      isPassedFlags[rule] = false;
+      result[rule] = {
+        isPassed: isPassedFlags[rule],
+        criteriaPassedCourses: [],
+      };
+      continue;
+    }
+    if (recognizedCourses.length > 1) {
+      recognizedCourses.sort((a, b) => b.courseCredit - a.courseCredit); // Sort the courses by credit in descending order
+      recognizedCourses = recognizedCourses.slice(0, 1); // Only the first course is counted as those are equivalent courses and others are ignored
+    }
+
+    let recognizedCredit = recognizedCourses.reduce(
+      (sum, course) => sum + course.courseCredit,
+      0
+    );
+
+    if (recognizedCredit >= rules[rule].creditRequirement) {
+      isPassedFlags[rule] = true;
+    } else {
+      isPassedFlags[rule] = false;
+    }
+    criteriaPassedCourses[rule] = recognizedCourses;
+    result[rule] = {
+      isPassed: isPassedFlags[rule],
+      criteriaPassedCourses: criteriaPassedCourses[rule],
+    };
+  }
+  const isRulePassed = Object.values(isPassedFlags).every(
+    (value) => value === true
+  );
+  result["isRulePassed"] = isRulePassed;
+  console.log("CSMajorResult", result);
+  return result;
+  // console.log("CSMajorPassFlags", isPassedFlags);
+  // console.log("CSMajorCriteriaPassedCourses", criteriaPassedCourses);
+}
+
+function reviewNetworkMajor(
+  courseList: Course[],
+  rules: { [key: string]: Rule }
+) {
+  let result: ResultDict = {};
+  let isPassedFlags: IsPassedFlagsDict = {};
+  let criteriaPassedCourses: CriteriaPassedCoursesDict = {};
+  for (const rule in rules) {
+    if (rule === "CEECSElective") {
+      // CEECS Elective is a special case, it should consider both the CEECS courses keywords and the courses' type as elctive
+      const ruleKeywords = rules[rule].courseKeywords;
+      let recognizedCourses = courseList.filter((course) => {
+        return ruleKeywords
+          .map((keyword: string) => new RegExp(keyword))
+          .some(
+            (regex: RegExp) =>
+              regex.test(course.courseID) && course.courseType === "選修"
+          ); // Adding required course type checking
+      });
+      criteriaPassedCourses[rule] = recognizedCourses;
+      let recognizedCredit = recognizedCourses.reduce(
+        (sum, course) => sum + course.courseCredit,
+        0
+      );
+      if (recognizedCredit >= rules[rule].creditRequirement) {
+        isPassedFlags[rule] = true;
+      } else {
+        isPassedFlags[rule] = false;
+      }
+      result[rule] = {
+        isPassed: isPassedFlags[rule],
+        criteriaPassedCourses: criteriaPassedCourses[rule],
+      };
+      continue;
+    }
+    // Other rules are followed the same pattern as the general required courses rule
+    const ruleKeywords = rules[rule].courseKeywords;
+    let recognizedCourses = courseList.filter((course) => {
+      return ruleKeywords
+        .map((keyword: string) => new RegExp(keyword))
+        .some((regex: RegExp) => regex.test(course.courseID));
+    });
+    // If there are no recognized courses, the required course is not passed, continue to the next required course but set the flag to false
+    if (recognizedCourses.length === 0) {
+      isPassedFlags[rule] = false;
+      result[rule] = {
+        isPassed: isPassedFlags[rule],
+        criteriaPassedCourses: [],
+      };
+      continue;
+    }
+    if (recognizedCourses.length > 1) {
+      recognizedCourses.sort((a, b) => b.courseCredit - a.courseCredit); // Sort the courses by credit in descending order
+      recognizedCourses = recognizedCourses.slice(0, 1); // Only the first course is counted as those are equivalent courses and others are ignored
+    }
+    let recognizedCredit = recognizedCourses.reduce(
+      (sum, course) => sum + course.courseCredit,
+      0
+    );
+
+    if (recognizedCredit >= rules[rule].creditRequirement) {
+      isPassedFlags[rule] = true;
+    } else {
+      isPassedFlags[rule] = false;
+    }
+    criteriaPassedCourses[rule] = recognizedCourses;
+    result[rule] = {
+      isPassed: isPassedFlags[rule],
+      criteriaPassedCourses: criteriaPassedCourses[rule],
+    };
+  }
+  const isRulePassed = Object.values(isPassedFlags).every(
+    (value) => value === true
+  );
+  result["isRulePassed"] = isRulePassed;
+  console.log("NetworkMajorResult", result);
+  return result;
+  // console.log("NetworkMajorPassFlags", isPassedFlags);
+  // console.log("NetworkMajorCriteriaPassedCourses", criteriaPassedCourses);
+}
+
+function reviewEEMajor(
+  courseList: Course[],
+  rules: { [key: string]: Rule | any }
+) {
+  let result: any = {};
+  let isPassedFlags: IsPassedFlagsDict = {};
+  let criteriaPassedCourses: CriteriaPassedCoursesDict = {};
+  let requiredElectiveRecognizedCourses: Course[] = [];
+  // EE rules are more complicated than CS and Network, for code clearity, we handle them differently
+
+  // 1. Required (The same as commonRequired pipeline)
+  let required = rules.Required;
+  for (const requiredCourse in required) {
+    let courseKeywords = required[requiredCourse].courseKeywords;
+    let recognizedCourses = courseList.filter((course) => {
+      return courseKeywords
+        .map((keyword: string) => new RegExp(keyword))
+        .some((regex: RegExp) => regex.test(course.courseID));
+    });
+    // If there are no recognized courses, the required course is not passed, continue to the next required course but set the flag to false
+    if (recognizedCourses.length === 0) {
+      isPassedFlags[requiredCourse] = false;
+      result[requiredCourse] = {
+        isPassed: isPassedFlags[requiredCourse],
+        criteriaPassedCourses: [],
+      };
+      continue;
+    }
+    if (recognizedCourses.length > 1) {
+      recognizedCourses.sort((a, b) => b.courseCredit - a.courseCredit); // Sort the courses by credit in descending order
+      recognizedCourses = recognizedCourses.slice(0, 1); // Only the first course is counted as those are equivalent courses and others are ignored
+    }
+    let recognizedCredit = recognizedCourses[0].courseCredit;
+
+    if (recognizedCredit === required[requiredCourse].creditRequirement) {
+      isPassedFlags[requiredCourse] = true;
+    } else {
+      isPassedFlags[requiredCourse] = false;
+    }
+
+    criteriaPassedCourses[requiredCourse] = recognizedCourses;
+    result[requiredCourse] = {
+      isPassed: isPassedFlags[requiredCourse],
+      criteriaPassedCourses: criteriaPassedCourses[requiredCourse],
+    };
+  }
+
+  // 2. Experiment Group (Should choose courses from at least three groups)
+  let experimentGroup = rules.ExperimentGroup;
+  let experimentGroupPassed = 0;
+  let experimentGroupRecognizedCredits = 0;
+
+  for (const group in experimentGroup) {
+    criteriaPassedCourses[group] = [];
+    for (const eligibleCourse in experimentGroup[group]) {
+      let courseKeywords =
+        experimentGroup[group][eligibleCourse].courseKeywords;
+      let recognizedCourses: Course[] = courseList.filter((course) => {
+        return courseKeywords
+          .map((keyword: string) => new RegExp(keyword))
+          .some((regex: RegExp) => regex.test(course.courseID));
+      });
+
+      if (recognizedCourses.length > 1) {
+        recognizedCourses.sort((a, b) => b.courseCredit - a.courseCredit); // Sort the courses by credit in descending order
+        recognizedCourses = recognizedCourses.slice(0, 1); // Only the first course is counted as those are equivalent courses and others are ignored
+      }
+
+      criteriaPassedCourses[group] =
+        criteriaPassedCourses[group].concat(recognizedCourses);
+    }
+
+    experimentGroupRecognizedCredits += criteriaPassedCourses[group].reduce(
+      (sum, course) => sum + course.courseCredit,
+      0
+    );
+    if (criteriaPassedCourses[group].length > 0) {
+      experimentGroupPassed += 1;
+    }
+    // Add the recognized courses to the requiredElectiveRecognizedCourses list to be excluded for CEECSElective criteria
+    requiredElectiveRecognizedCourses =
+      requiredElectiveRecognizedCourses.concat(criteriaPassedCourses[group]);
+  }
   if (
-    typeof performance !== "undefined" &&
-    typeof performance.now === "function"
+    experimentGroupPassed === experimentGroup.crossCategoryRequirement &&
+    experimentGroupRecognizedCredits >= experimentGroup.creditRequirement
   ) {
-    id += performance.now(); //use high-precision timer if available
+    isPassedFlags["ExperimentGroup"] = true;
+  } else {
+    isPassedFlags["ExperimentGroup"] = false;
   }
-  return "xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-    var r = (id + Math.random() * 16) % 16 | 0;
-    id = Math.floor(id / 16);
-    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
-  });
+  result["ExperimentGroup"] = {
+    isRulePassed: isPassedFlags["ExperimentGroup"],
+  };
+  for (const group in experimentGroup) {
+    if (group === "crossCategoryRequirement" || group === "creditRequirement")
+      continue;
+    result["ExperimentGroup"][group] = {
+      isPassed: criteriaPassedCourses[group].length > 0,
+      criteriaPassedCourses: criteriaPassedCourses[group],
+    };
+  }
+  // 3. AsteriskRequiredElective (Should choose courses from at least three categories)
+  let asteriskRequiredElective = rules.AsteriskRequiredElective;
+  let isCrossCategoryPassed = false;
+  let asteriskRequiredElectiveRecognizedCredits = 0;
+  // Fxxking Annoying Special Case: Electronics III (EE3001) is a course that overlaps with two categories.
+  // Since students could determine which categories it belongs to, of Electronics and SolidState, we consider it lastly.
+
+  // First we remove the EE3001 from the course list
+  let courseListWOElectronics = courseList.filter(
+    (course) => course.courseID !== "EE3001"
+  );
+  let recognizedCategoryDict: { [key: string]: boolean } = {
+    ElectronicsCategory: false,
+    SolidStateCategory: false,
+    SystemsAndBiomedicalCategory: false,
+    ElectromagneticWavesCategory: false,
+  };
+  for (const category in asteriskRequiredElective) {
+    criteriaPassedCourses[category] = [];
+    for (const eligibleCourse in asteriskRequiredElective[category]) {
+      let courseKeywords =
+        asteriskRequiredElective[category][eligibleCourse].courseKeywords;
+      let recognizedCourses: Course[] = courseListWOElectronics.filter(
+        (course) => {
+          return courseKeywords
+            .map((keyword: string) => new RegExp(keyword))
+            .some((regex: RegExp) => regex.test(course.courseID));
+        }
+      );
+
+      if (recognizedCourses.length > 1) {
+        recognizedCourses.sort((a, b) => b.courseCredit - a.courseCredit); // Sort the courses by credit in descending order
+        recognizedCourses = recognizedCourses.slice(0, 1); // Only the first course is counted as those are equivalent courses and others are ignored
+      }
+      criteriaPassedCourses[category] =
+        criteriaPassedCourses[category].concat(recognizedCourses);
+    }
+
+    if (criteriaPassedCourses[category].length > 0) {
+      recognizedCategoryDict[category] = true;
+    }
+  }
+  // Here we consider the EE3001, adaptively assign to either Electronics or SolidState if it is recognized and the category is not assigned yet.
+  // Case 1: The student has already been recognized cross-category requirement(3), then the EE3001 is no need to be considered.
+  if (
+    Object.values(recognizedCategoryDict).filter((value) => value === true)
+      .length >= asteriskRequiredElective.crossCategoryRequirement
+  ) {
+    isCrossCategoryPassed = true;
+    let EE3001 = courseList.filter((course) => course.courseID === "EE3001");
+
+    // Default assign to Electronics if the cross-category requirement is satisfied.
+    if (EE3001.length > 0) {
+      criteriaPassedCourses.ElectronicsCategory =
+        criteriaPassedCourses.ElectronicsCategory.concat(EE3001);
+    }
+    // Case 2: The student has not been recognized cross-category requirement(3), then the EE3001 is considered and adaptively assigned.
+  } else if (
+    courseList.filter((course) => course.courseID === "EE3001").length > 0
+  ) {
+    let EE3001 = courseList.filter((course) => course.courseID === "EE3001");
+    if (recognizedCategoryDict.ElectronicsCategory === false) {
+      recognizedCategoryDict.ElectronicsCategory = true;
+      criteriaPassedCourses.ElectronicsCategory =
+        criteriaPassedCourses.ElectronicsCategory.concat(EE3001);
+    } else if (recognizedCategoryDict.SolidState === false) {
+      recognizedCategoryDict.SolidState = true;
+      criteriaPassedCourses.SolidStateCategory =
+        criteriaPassedCourses.SolidStateCategory.concat(EE3001);
+    }
+
+    // Recheck if cross-category requirement is satisfied after the EE3001 is adaptively assigned.
+    if (
+      Object.values(recognizedCategoryDict).filter((value) => value === true)
+        .length >= asteriskRequiredElective.crossCategoryRequirement
+    ) {
+      isCrossCategoryPassed = true;
+    } else {
+      isCrossCategoryPassed = false;
+    }
+    // Case 3: The student has not been recognized cross-category requirement(3), and the EE3001 is not recognized, then the cross-category requirement is not satisfied.
+  } else {
+    isCrossCategoryPassed = false;
+  }
+  let asteriskRequiredElectiveRecognizedCourses = Object.keys(
+    criteriaPassedCourses
+  )
+    .filter((key) => Object.keys(recognizedCategoryDict).includes(key))
+    .reduce<{ [key: string]: any }>((result, key) => {
+      result[key] = criteriaPassedCourses[key];
+      return result;
+    }, {});
+  console.log(
+    "asteriskRequiredElectiveRecognizedCourses",
+    asteriskRequiredElectiveRecognizedCourses
+  );
+  asteriskRequiredElectiveRecognizedCredits = Object.values(
+    asteriskRequiredElectiveRecognizedCourses
+  ).reduce(
+    (sum, courses) =>
+      sum +
+      courses.reduce(
+        (sum: number, course: { courseCredit: number }) =>
+          sum + course.courseCredit,
+        0
+      ),
+    0
+  );
+  // Add the recognized courses to the requiredElectiveRecognizedCourses list to be excluded for CEECSElective criteria
+  for (const category in asteriskRequiredElectiveRecognizedCourses) {
+    requiredElectiveRecognizedCourses =
+      requiredElectiveRecognizedCourses.concat(
+        asteriskRequiredElectiveRecognizedCourses[category]
+      );
+  }
+
+  if (
+    isCrossCategoryPassed &&
+    asteriskRequiredElectiveRecognizedCredits >=
+      asteriskRequiredElective.creditRequirement
+  ) {
+    isPassedFlags["AsteriskRequiredElective"] = true;
+  } else {
+    isPassedFlags["AsteriskRequiredElective"] = false;
+  }
+  result["AsteriskRequiredElective"] = {
+    isRulePassed: isPassedFlags["AsteriskRequiredElective"],
+  };
+  for (const category in asteriskRequiredElectiveRecognizedCourses) {
+    result["AsteriskRequiredElective"][category] = {
+      isPassed: recognizedCategoryDict[category],
+      criteriaPassedCourses:
+        asteriskRequiredElectiveRecognizedCourses[category],
+    };
+  }
+  const isRulePassed = Object.values(isPassedFlags).every(
+    (value) => value === true
+  );
+  result["isRulePassed"] = isRulePassed;
+  console.log("EEMajorResult", result);
+  return result;
 }
 
-function createHTMLFile() {
-  // const download = document.querySelector("#download");
-  // const test = document.querySelector('.test');
-  let totalCredits = commonObj["總學分"];
-  let str = "";
-  str += `
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <link rel="icon" href="https://img.icons8.com/ios/344/test.png" type="image/x-icon">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" integrity="sha512-1sCRPdkRXhBV2PBLUdRb4tMg1w2YPf37qatUFeS7zlBy7jJI8Lf4VHwWfZZfpXtYSLy85pkm9GaYVYMfw5BC1A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <title>validation result</title>
-  </head>
-  <body>
-  `;
+function reviewCOMajor(
+  courseList: Course[],
+  rules: { [key: string]: Rule | any }
+) {
+  let result: ResultDict = {};
+  let isPassedFlags: IsPassedFlagsDict = {};
+  let criteriaPassedCourses: CriteriaPassedCoursesDict = {};
 
-  str += `
-    <div class="container">
-      <div class="row g-3">
-  `;
-  str += `
-        <div class="col-12">
+  // For code clearity, we handle the COMajor rules differently as the EE Major did.
+  // 1. Required (The same as commonRequired pipeline)
+  let required = rules.Required;
+  for (const requiredCourse in required) {
+    let courseKeywords = required[requiredCourse].courseKeywords;
+    let recognizedCourses = courseList.filter((course) => {
+      return courseKeywords
+        .map((keyword: string) => new RegExp(keyword))
+        .some((regex: RegExp) => regex.test(course.courseID));
+    });
+    // If there are no recognized courses, the required course is not passed, continue to the next required course but set the flag to false
+    if (recognizedCourses.length === 0) {
+      isPassedFlags[requiredCourse] = false;
+      result[requiredCourse] = {
+        isPassed: isPassedFlags[requiredCourse],
+        criteriaPassedCourses: [],
+      };
+      continue;
+    }
+    if (recognizedCourses.length > 1) {
+      recognizedCourses.sort((a, b) => b.courseCredit - a.courseCredit); // Sort the courses by credit in descending order
+      recognizedCourses = recognizedCourses.slice(0, 1); // Only the first course is counted as those are equivalent courses and others are ignored
+    }
+    let recognizedCredit = recognizedCourses[0].courseCredit;
+
+    if (recognizedCredit === required[requiredCourse].creditRequirement) {
+      isPassedFlags[requiredCourse] = true;
+    } else {
+      isPassedFlags[requiredCourse] = false;
+    }
+
+    criteriaPassedCourses[requiredCourse] = recognizedCourses;
+    result[requiredCourse] = {
+      isPassed: isPassedFlags[requiredCourse],
+      criteriaPassedCourses: criteriaPassedCourses[requiredCourse],
+    };
+  }
+  // 2. AsteriskRequiredElective
+  let asteriskRequiredElective = rules.AsteriskRequiredElective;
+  let asteriskRequiredElectiveRecognizedCredits: number = 0;
+  criteriaPassedCourses["asteriskRequiredElective"] = [];
+  for (const eligibleCourse in asteriskRequiredElective) {
+    if (eligibleCourse === "creditRequirement") continue; // Skip the creditRequirement key
+    let courseKeywords =
+      asteriskRequiredElective[eligibleCourse].courseKeywords;
+    let recognizedCourses = courseList.filter((course) => {
+      return courseKeywords
+        .map((keyword: string) => new RegExp(keyword))
+        .some((regex: RegExp) => regex.test(course.courseID));
+    });
+
+    if (recognizedCourses.length > 1) {
+      recognizedCourses.sort((a, b) => b.courseCredit - a.courseCredit); // Sort the courses by credit in descending order
+      recognizedCourses = recognizedCourses.slice(0, 1); // Only the first course is counted as those are equivalent courses and others are ignored
+    }
+    criteriaPassedCourses["asteriskRequiredElective"] =
+      criteriaPassedCourses["asteriskRequiredElective"].concat(
+        recognizedCourses
+      );
+  }
+  asteriskRequiredElectiveRecognizedCredits = criteriaPassedCourses[
+    "asteriskRequiredElective"
+  ].reduce((sum, course) => sum + course.courseCredit, 0);
+  if (
+    asteriskRequiredElectiveRecognizedCredits >=
+    asteriskRequiredElective.creditRequirement
+  ) {
+    isPassedFlags["asteriskRequiredElective"] = true;
+  } else {
+    isPassedFlags["asteriskRequiredElective"] = false;
+  }
+  result["asteriskRequiredElective"] = {
+    isPassed: isPassedFlags["asteriskRequiredElective"],
+    criteriaPassedCourses: criteriaPassedCourses["asteriskRequiredElective"],
+  };
+
+  // 3. CEECSElective
+  let CEECSElective = rules.CEECSElective;
+  let CEECSElectiveRecognizedCredits: number = 0;
+  let courseListWOAsteriskRequiredElective = courseList.filter(
+    (course) =>
+      !criteriaPassedCourses["asteriskRequiredElective"].includes(course)
+  );
+  let CEECSElectiveCourseKeywords = CEECSElective.courseKeywords;
+  let CEECSElectiveRecognizedCourses =
+    courseListWOAsteriskRequiredElective.filter((course) => {
+      return CEECSElectiveCourseKeywords.map(
+        (keyword: string) => new RegExp(keyword)
+      ).some(
+        (regex: RegExp) =>
+          regex.test(course.courseID) && course.courseType === "選修"
+      );
+    });
+  criteriaPassedCourses["CEECSElective"] = CEECSElectiveRecognizedCourses;
+  CEECSElectiveRecognizedCredits = CEECSElectiveRecognizedCourses.reduce(
+    (sum, course) => sum + course.courseCredit,
+    0
+  );
+  if (CEECSElectiveRecognizedCredits >= CEECSElective.creditRequirement) {
+    isPassedFlags["CEECSElective"] = true;
+  } else {
+    isPassedFlags["CEECSElective"] = false;
+  }
+  result["CEECSElective"] = {
+    isPassed: isPassedFlags["CEECSElective"],
+    criteriaPassedCourses: criteriaPassedCourses["CEECSElective"],
+  };
+  // console.log("COMajorPassFlags", isPassedFlags);
+  // console.log("COMajorCriteriaPassedCourses", criteriaPassedCourses);
+  const isRulePassed = Object.values(isPassedFlags).every(
+    (value) => value === true
+  );
+  result["isRulePassed"] = isRulePassed;
+  console.log("COMajorResult", result);
+  return result;
+}
+
+function createTopSection(
+  courseList: Course[],
+  totalCreditRequirement: number,
+  generalInfo: any
+) {
+  const totalCredits = courseList.reduce(
+    (sum, course) => sum + course.courseCredit,
+    0
+  );
+  const isTotalCreditPassed = totalCredits >= totalCreditRequirement;
+  const textColor = isTotalCreditPassed ? "#96ee11" : "#ff5050";
+  const htmlString = `
+  <div class="container mt-5">
+    <h1 class="display-2">NCU IPEECS Graduation Review Report</h1>
+    <h2 class="mb-4 display-4">General Information</h2>
+    <h2 class="mb-4 display-4">Name: ${generalInfo.studentName}</h2>
+    <h2 class="mb-4 display-4">ID: ${generalInfo.studentID}</h2>
+    <h2 class="display-4">Total Credits: ${totalCredits}</h2>
+    <h2 style="color : ${textColor}" class="display-4">Total Credits Passed: ${isTotalCreditPassed}</h2>
+    <h2 class="display-4"> All Recognized Courses: </h2>
+    <ul class="list-group">
+      ${courseList
+        .map(
+          (course) => `
+        <li key="${course.courseID}" class="list-group-item">
+          <strong>${course.courseID}</strong><strong>${course.courseName}</strong> (${course.courseCredit} credits)
+        </li>
+      `
+        )
+        .join("")}
+    </ul>
+  </div>
+`;
+  return renderToString(
+    <div dangerouslySetInnerHTML={{ __html: htmlString }} />
+  );
+}
+function createCommonSection(result: ResultDict, criteria: string) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const isRulePassed = result["isRulePassed"];
+  delete result["isRulePassed"];
+  const textColor = isRulePassed ? "#96ee11" : "#ff5050";
+  const htmlString = `
+  <div class="container mt-5">
+    <h2 class="mb-4">${criteria}</h2>
+    <h2 style="color: ${textColor}" ><strong>Passed: </strong>${String(
+    isRulePassed
+  )}</h2>
+    <div class="row">
+      ${Object.entries(result)
+        .map(
+          ([category, categoryData]) => `
+        <div key="${category}" class="col-md-6 mb-4">
           <div class="card ${
-            totalCredits.final ? "bg-success" : "bg-danger"
-          } bg-opacity">
+            (categoryData as { isPassed: boolean }).isPassed
+              ? "border-success"
+              : "border-danger"
+          }">
             <div class="card-body">
-              <h5 class="card-title text-white fw-bold">總學分</h5>
-              <h6 class="card-subtitle mb-2 text-white">${
-                totalCredits.final ? "通過" : "未通過"
-              }</h6>
-              <h2 class="card-text bg-white p-3 rounded border-3">共 ${
-                totalCredits.validation
-              } 學分</h2>
+              <h5 class="card-title">${category}</h5>
+              <p class="card-text">
+                <strong>Passed:</strong> ${
+                  (categoryData as { isPassed: boolean }).isPassed
+                    ? "Yes"
+                    : "No"
+                }
+              </p>
+              <ul class="list-group">
+                ${(
+                  categoryData as { criteriaPassedCourses: Course[] }
+                ).criteriaPassedCourses
+                  .map(
+                    (course) => `
+                  <li key="${course.courseID}" class="list-group-item">
+                    <strong>${course.courseID}</strong><strong>${course.courseName}</strong> (${course.courseCredit} credits)
+                  </li>
+                `
+                  )
+                  .join("")}
+              </ul>
             </div>
           </div>
         </div>
-  `;
-  delete commonObj["總學分"];
-  Object.entries(commonObj).forEach((entry: any) => {
-    let [key, value] = entry;
-    str += `
-        <div class="col-12">
+      `
+        )
+        .join("")}
+    </div>
+  </div>
+`;
+  return renderToString(
+    <div dangerouslySetInnerHTML={{ __html: htmlString }} />
+  );
+}
+// Special Case, should display the group and courses
+function createEESection(result: ResultDict | any, criteria: string) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const isRulePassed = result["isRulePassed"];
+  const textColor = isRulePassed ? "#96ee11" : "#ff5050";
+  delete result["isRulePassed"];
+  // 1. Required (The same as commonRequired pipeline)
+  let resultWOAsteriskAndExperiment = Object.fromEntries(
+    Object.entries(result).filter(
+      ([key, value]) =>
+        key !== "AsteriskRequiredElective" && key !== "ExperimentGroup"
+    )
+  );
+  console.log("resultWOAsteriskAndExperiment", resultWOAsteriskAndExperiment);
+
+  // 2. Experiment Group (should display group and courses)
+  let resultExperimentGroup = result["ExperimentGroup"];
+  let isExperimentGroupPassed = String(resultExperimentGroup["isRulePassed"]);
+  delete resultExperimentGroup["isRulePassed"];
+
+  // 3. AsteriskRequiredElective (should display category and courses)
+  let resultAsteriskRequiredElective = result["AsteriskRequiredElective"];
+  let isAsteriskRequiredElectivePassed = String(
+    resultAsteriskRequiredElective["isRulePassed"]
+  );
+  delete resultAsteriskRequiredElective["isRulePassed"];
+
+  let htmlString = `
+    <div class="container mt-5">
+    <h2 class="mb-4">${criteria}</h2>
+    <h2 style="color: ${textColor}"><strong>Passed: </strong>${String(
+    isRulePassed
+  )}</h2>
+    <div class="row">
+      <div class="row">
+        ${Object.entries(resultWOAsteriskAndExperiment)
+          .map(
+            ([category, categoryData]) => `
+          <div key="${category}" class="col-md-6 mb-4">
           <div class="card ${
-            value.final ? "bg-success" : "bg-danger"
-          } bg-opacity">
-            <div class="card-body">
-              <h5 class="card-title text-white fw-bold">${key}</h5>
-              <h6 class="card-subtitle mb-2 text-white">${
-                value.final ? "通過" : "未通過"
-              }</h6>
-              <div class="accordion">
-    `;
-    value.validation.forEach((result: any) => {
-      let id = uuid();
-      str += `
-                <div class="accordion-item">
-                  <h2 class="accordion-header" id="Heading-${id}">
-                    <button class="accordion-button p-2 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#Collapse-${id}" aria-expanded="false" aria-controls="Collapse-${id}">
-                      ${result.name} 
-                      <i class="fa-regular fa-circle-check text-success px-2 ${
-                        result.valid ? "d-block" : "d-none"
-                      }"></i>
-                      <i class="fa-regular fa-circle-xmark text-danger px-2 ${
-                        result.valid ? "d-none" : "d-block"
-                      }"></i>
-                    </button>
-                  </h2>
-                  <div id="Collapse-${id}" class="accordion-collapse collapse" aria-labelledby="Heading-${id}">
-                    <div class="accordion-body p-2">
-                      <h5 class="accordion-text">共 ${result.credits} 學分</h5>
-                      <p class="accordion-text m-0">已修 ${result.courses.join(
-                        ", "
-                      )}</p>
-                    </div>
-                  </div>
-                </div>
-      `;
-    });
-    str += `
+            (categoryData as { isPassed: boolean }).isPassed
+              ? "border-success"
+              : "border-danger"
+          }">
+              <div class="card-body">
+                <h5 class="card-title">${category}</h5>
+                <p class="card-text">
+                  <strong>Passed:</strong> ${
+                    (categoryData as { isPassed: boolean }).isPassed
+                      ? "Yes"
+                      : "No"
+                  }
+                </p>
+                <ul class="list-group">
+                  ${(
+                    categoryData as { criteriaPassedCourses: Course[] }
+                  ).criteriaPassedCourses
+                    .map(
+                      (course) => `
+                    <li key="${course.courseID}" class="list-group-item">
+                      <strong>${course.courseID}</strong><strong>${course.courseName}</strong> (${course.courseCredit} credits)
+                    </li>
+                  `
+                    )
+                    .join("")}
+                </ul>
               </div>
             </div>
           </div>
-        </div>
-    `;
-  });
-
-  str += `
-        <div class="col-12"></div>
-  `;
-
-  Object.entries(majorObj).forEach((entry: any) => {
-    let [key, value] = entry;
-    let checkFinal = true;
-    Object.values(value).forEach((validateEntry: any) => {
-      checkFinal = checkFinal && validateEntry.final;
-    });
-    str += `
-        <div class="col-12">
-          <div class="card ${
-            checkFinal ? "bg-success" : "bg-danger"
-          } bg-opacity">
-            <div class="card-body">
-              <h5 class="card-title text-white fw-bold">${key}</h5>
-              <h6 class="card-subtitle mb-2 text-white">${
-                checkFinal ? "通過" : "未通過"
-              }</h6>
-              <ul class="list-group">
-    `;
-
-    Object.entries(value).forEach((termsEntry: any) => {
-      let [term, termValue] = termsEntry;
-      str += `
-                <li class="list-group-item">
-                  <h5 class="card-text fw-bold">${term} ${
-        termValue.final ? "通過" : "未通過"
-      }</h5>
-                  <div class="accordion">
-      `;
-      termValue.validation.forEach((result: any) => {
-        let id = uuid();
-        str += `
-                    <div class="accordion-item">
-                      <h2 class="accordion-header" id="Heading-${id}">
-                        <button class="accordion-button p-2 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#Collapse-${id}" aria-expanded="false" aria-controls="Collapse-${id}">
-                          ${result.name} 
-                          <i class="fa-regular fa-circle-check text-success px-2 ${
-                            result.valid ? "d-block" : "d-none"
-                          }"></i>
-                          <i class="fa-regular fa-circle-xmark text-danger px-2 ${
-                            result.valid ? "d-none" : "d-block"
-                          }"></i> 
-                        </button>
-                      </h2>
-                      <div id="Collapse-${id}" class="accordion-collapse collapse" aria-labelledby="Heading-${id}">
-                        <div class="accordion-body p-2">
-                          <h5 class="accordion-text">共 ${
-                            result.credits
-                          } 學分</h5>
-                          <p class="accordion-text m-0">已修 ${result.courses.join(
-                            ", "
-                          )}</p>
-                        </div>
-                      </div>
-                    </div>
-        `;
-      });
-      str += `
-                  </div>
-                </li>
-      `;
-    });
-    str += `
-            </ul>
-          </div>
-        </div>
+        `
+          )
+          .join("")}
       </div>
-    `;
-  });
 
-  str += `
+      
+      <h2>${isExperimentGroupPassed}</h2>
+      <div class="row">
+        ${Object.entries(resultExperimentGroup)
+          .map(
+            ([category, categoryData]) => `
+          <div key="${category}" class="col-md-6 mb-4">
+          <div class="card ${
+            (categoryData as { isPassed: boolean }).isPassed
+              ? "border-success"
+              : "border-danger"
+          }">
+              <div class="card-body">
+                <h5 class="card-title">${category}</h5>
+                <p class="card-text">
+                  <strong>Passed:</strong> ${
+                    (categoryData as { isPassed: boolean }).isPassed
+                      ? "Yes"
+                      : "No"
+                  }
+                </p>
+                <ul class="list-group">
+                  ${(
+                    categoryData as { criteriaPassedCourses: Course[] }
+                  ).criteriaPassedCourses
+                    .map(
+                      (course) => `
+                    <li key="${course.courseID}" class="list-group-item">
+                      <strong>${course.courseID}</strong><strong>${course.courseName}</strong> (${course.courseCredit} credits)
+                    </li>
+                  `
+                    )
+                    .join("")}
+                </ul>
+              </div>
+            </div>
+          </div>
+        `
+          )
+          .join("")}
+      </div>
+      <h2>${isAsteriskRequiredElectivePassed}</h2>
+      <div class="row">
+        ${Object.entries(resultAsteriskRequiredElective)
+          .map(
+            ([category, categoryData]) => `
+          <div key="${category}" class="col-md-6 mb-4">
+          <div class="card ${
+            (categoryData as { isPassed: boolean }).isPassed
+              ? "border-success"
+              : "border-danger"
+          }">
+              <div class="card-body">
+                <h5 class="card-title">${category}</h5>
+                <p class="card-text">
+                  <strong>Passed:</strong> ${
+                    (categoryData as { isPassed: boolean }).isPassed
+                      ? "Yes"
+                      : "No"
+                  }
+                </p>
+                <ul class="list-group">
+                  ${(
+                    categoryData as { criteriaPassedCourses: Course[] }
+                  ).criteriaPassedCourses
+                    .map(
+                      (course) => `
+                    <li key="${course.courseID}" class="list-group-item">
+                      <strong>${course.courseID}</strong><strong>${course.courseName}</strong> (${course.courseCredit} credits)
+                    </li>
+                  `
+                    )
+                    .join("")}
+                </ul>
+              </div>
+            </div>
+          </div>
+        `
+          )
+          .join("")}
       </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
-    </body>
-  </html>`;
+  `;
 
-  return str;
+  return renderToString(
+    <div dangerouslySetInnerHTML={{ __html: htmlString }} />
+  );
 }
 
-function GradReviewer(rules: { [key: string]: any }) {
-  const checkTable = React.useContext(CheckTableContext);
-  const [HTMLFileGenerateState, setHTMLFileGenerateState] =
-    React.useState("generate HTML file");
-  const handleClick = () => {
-    // console.log("checkTable: ", checkTable);
-    validation(checkTable, rules);
-    setHTMLFileGenerateState("done");
-  };
-  // download HTML file
-  const downloadClick = (e: any) => {
-    // console.log(e.target);
-    console.log("download file");
-    e.target.href =
-      "data:text/html;charset=UTF-8," + encodeURIComponent(createHTMLFile());
-    setHTMLFileGenerateState("reset to default");
-  };
+function createHTMLFile(htmlSections: string[]) {
+  let htmlString = "";
+  for (const section of htmlSections) {
+    htmlString += section;
+  }
+  return `
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validation Result</title>
+  </head>
+  <body>
+    ${htmlString}
+  </body>
+ `;
+}
+
+function GradReviewer() {
+  const AllData: any = React.useContext(CheckTableContext);
+  console.log("checkData in grad viewer", AllData.checkData);
+  console.log("generalInfoData in grad viewer", AllData.checkData.generalInfo);
+  console.log("checkTableData in grad viewer", AllData.checkData.checkTable);
+
+  // const generalInfoData: any = React.useContext(GeneralInfoContext);
+  // console.log("generalInfoData in grad viewer", generalInfoData);
+  const rulesData: any = React.useContext(RulesContext);
+  const rules = rulesData.rules;
+  const courseList: Course[] = AllData.checkData.checkTable.map(
+    (checkTable: any) => ({
+      courseID: checkTable.courseID,
+      courseName: checkTable.courseName,
+      courseType: checkTable.courseType,
+      courseCredit: checkTable.courseCredit,
+      courseGrade: checkTable.courseGrade,
+    })
+  );
+
+  console.log("courses from type mapping", courseList);
+  console.log("rules received by grad reviewer", rules.NetworkMajor);
+
+  const commonRequiredResult = reviewCommonRequired(
+    courseList,
+    rules.commonRequired
+  );
+  const collegeRequiredResult = reviewCollegeRequired(
+    courseList,
+    rules.collegeRequired
+  );
+  const englishRequiredElectiveResult = reviewEnglishRequiredElective(
+    courseList,
+    rules.englishRequiredElective
+  );
+  const collegeRequiredElectiveResult = reviewCollegeRequiredElective(
+    courseList,
+    rules.collegeRequiredElective
+  );
+  const serviceLearningResult = reviewServiceLearning(
+    courseList,
+    rules.serviceLearning
+  );
+  const creativityAndEntrepreneurshipResult =
+    reviewCreativityAndEntrepreneurship(
+      courseList,
+      rules.creativityAndEntrepreneurship
+    );
+  const EEMajorResult = reviewEEMajor(courseList, rules.EEMajor);
+  const COMajorResult = reviewCOMajor(courseList, rules.COMajor);
+  const CSMajorResult = reviewCSMajor(courseList, rules.CSMajor);
+  const NetworkMajorResult = reviewNetworkMajor(courseList, rules.NetworkMajor);
+
+  const htmlSections: string[] = [];
+  htmlSections.push(
+    createTopSection(courseList, 128, AllData.checkData.generalInfo)
+  );
+
+  htmlSections.push(
+    createCommonSection(commonRequiredResult, "Common Required")
+  );
+  htmlSections.push(
+    createCommonSection(collegeRequiredResult, "College Required")
+  );
+  htmlSections.push(
+    createCommonSection(
+      englishRequiredElectiveResult,
+      "English Required Elective"
+    )
+  );
+  htmlSections.push(
+    createCommonSection(
+      collegeRequiredElectiveResult,
+      "College Required Elective"
+    )
+  );
+  htmlSections.push(
+    createCommonSection(serviceLearningResult, "Service Learning")
+  );
+
+  htmlSections.push(
+    createCommonSection(CSMajorResult, "Computer Science Major")
+  );
+  htmlSections.push(createCommonSection(NetworkMajorResult, "Network Major"));
+
+  htmlSections.push(
+    createEESection(EEMajorResult, "Electrical Engineering Major")
+  );
+
+  htmlSections.push(
+    createCommonSection(COMajorResult, "Communication Engineering Major")
+  );
+  htmlSections.push(
+    createCommonSection(
+      creativityAndEntrepreneurshipResult,
+      "Creativity and Entrepreneurship Program"
+    )
+  );
+
+
+  const handleHTMLClick = () => {
+    const html = createHTMLFile(htmlSections);
+    const blob = new Blob([html], { type: "text/html" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `IPEECS_GradReviewReport_${AllData.checkData.generalInfo.studentName}_${AllData.checkData.generalInfo.studentID}.html`;
+    link.click();
+  }
+
+  // const handlePDFClick = async () => {
+  //   const html = createHTMLFile(htmlSections);
+
+  //   // Create a temporary div element and append it to the document
+  //   const tempDiv = document.createElement("div");
+  //   tempDiv.innerHTML = html;
+  //   document.body.appendChild(tempDiv);
+
+  //   // Use html2canvas to render the element
+  //   const canvas = await html2canvas(tempDiv, {scale: 0.5});
+
+  //   // Remove the temporary div from the document
+  //   document.body.removeChild(tempDiv);
+
+  //   // Create a PDF using jsPDF
+  //   const imgData = canvas.toDataURL("image/png");
+  //   const pdf = new jsPDF("p", "mm", "a4");
+    
+  //   pdf.addImage(imgData, "JPEG", 0, 0, canvas.width, canvas.height);
+  //   pdf.save(
+  //     `IPEECS_GradReviewReport_${AllData.checkData.generalInfo.studentName}_${AllData.checkData.generalInfo.studentID}.pdf`
+  //   );
+  // };
 
   return (
     <div>
-      <Button variant="primary" onClick={handleClick}>
-        Check
+      <Button variant="primary" onClick={handleHTMLClick}>
+        Download HTML
       </Button>{" "}
-      <a
-        className="App-download"
-        id="download"
-        onClick={downloadClick}
-        href="#download"
-        download="validate.html"
-        style={HTMLFileGenerateState === "done" ? {} : { display: "none" }}
-      >
-        Download Result
-      </a>
     </div>
   );
 }

@@ -22,5 +22,5 @@
   },
   "include": [
     "src"
-  ]
+, "public/firebase-app.js", "public/firebase-database.js"  ]
 }
