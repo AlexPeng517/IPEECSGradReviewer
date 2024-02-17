@@ -1251,8 +1251,7 @@ function GradReviewer() {
     )
   );
 
-  const [HTMLFileGenerateState, setHTMLFileGenerateState] =
-    React.useState("generate HTML file");
+
   const handleHTMLClick = () => {
     const html = createHTMLFile(htmlSections);
     const blob = new Blob([html], { type: "text/html" });
@@ -1260,8 +1259,7 @@ function GradReviewer() {
     link.href = URL.createObjectURL(blob);
     link.download = `IPEECS_GradReviewReport_${AllData.checkData.generalInfo.studentName}_${AllData.checkData.generalInfo.studentID}.html`;
     link.click();
-    setHTMLFileGenerateState("done");
-  };
+  }
 
   // const handlePDFClick = async () => {
   //   const html = createHTMLFile(htmlSections);

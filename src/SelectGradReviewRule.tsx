@@ -6,7 +6,7 @@ import Form from 'react-bootstrap/Form';
 export const RulesContext = React.createContext({});
 export const RulesContextProvider = RulesContext.Provider;
 
-let rules: any;
+
 
 function SelectGradReviewRule() {
   const [ruleYear, setRuleYear] = React.useState("-- select an year -- ");
