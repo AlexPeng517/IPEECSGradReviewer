@@ -5,7 +5,6 @@ import SelectGradReviewRule from "./SelectGradReviewRule";
 export const CheckTableContext = React.createContext({});
 export const CheckTableContextProvider = CheckTableContext.Provider;
 
-// const iconv = require("iconv-lite");
 
 let checkTable:any = async () => {
   let allCourses:any
@@ -24,6 +23,19 @@ let checkTable:any = async () => {
   return allCourses;
 };
 
+let generalInfo:any = async () => {
+  let generalInfo:any
+  const [tab]:any = await chrome.tabs.query({active: true, lastFocusedWindow: true});
+  console.log("tab id: "+tab.id);
+  generalInfo = await chrome.tabs.sendMessage(tab.id, {action: "fetchGeneralInfo"});
+  generalInfo = JSON.parse(generalInfo);
+  console.log("response received by extension: ");
+  console.log(generalInfo);
+  return generalInfo;
+}
+
+let checkData: any = {};
+
 function FetchGradeTable() {
   const [fetchingState, setfetchingState] = React.useState(
     "fetching course table..."
@@ -32,8 +44,11 @@ function FetchGradeTable() {
     console.log("get cookies");
     console.log("use effect");
     (async () =>{
-      await console.log("checkTable", checkTable());
+      // await console.log("checkTable", checkTable());
       checkTable = await checkTable();
+      generalInfo = await generalInfo();
+      console.log("generalInfo in fetch grade table", generalInfo);
+      checkData = { "generalInfo":generalInfo, "checkTable":checkTable };
       await setfetchingState("Course Table Fetched Successfully");
     })();
     
@@ -55,7 +70,8 @@ function FetchGradeTable() {
           Please Login to NCU Portal Prior to Fetch Your Grade Data
         </a>
       )}
-      <CheckTableContextProvider value={{ checkTable }}>
+
+      <CheckTableContextProvider value={{ checkData }}>
         {fetchingState === "Course Table Fetched Successfully" && <SelectGradReviewRule />}
       </CheckTableContextProvider>
     </div>

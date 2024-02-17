@@ -15,8 +15,7 @@
   "host_permissions": [
     "*://*.cc.ncu.edu.tw/system/162*",
     "*://cis.ncu.edu.tw/*",
-    "*://portal.ncu.edu.tw/system*",
-    "ipeecs-gradreviewer-default-rtdb.asia-southeast1.firebasedatabase.app"
+    "*://portal.ncu.edu.tw/system*"
   ],
   "content_scripts" : [  
       {  
