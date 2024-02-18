@@ -15,7 +15,7 @@ let checkTable:any = async () => {
   console.log("response received by extension: ");
   console.log(allCourses);
   allCourses = allCourses.courseList.filter((entry: any) => {
-    if ((entry.courseGrade >= 60 || entry.courseGrade === "勞動服務通過") && entry.courseGrade !== "停修" && entry.courseCredit !== null) {
+    if ((entry.courseGrade >= 60 || entry.courseGrade === "勞動服務通過" || entry.courseGrade === "免修" || entry.courseGrade ==="一般課程通過") && entry.courseGrade !== "停修" && entry.courseCredit !== null) {
       return true;
     }
     return false;
