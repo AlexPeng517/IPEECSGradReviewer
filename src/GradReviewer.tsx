@@ -973,7 +973,8 @@ function createCommonSection(result: ResultDict, criteria: string) {
 function createEESection(result: ResultDict | any, criteria: string) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isRulePassed = result["isRulePassed"];
-  const textColor = isRulePassed ? "#96ee11" : "#ff5050";
+  const isRulePassedTextColor = isRulePassed ? "#96ee11" : "#ff5050";
+  const isRulePassedText = isRulePassed ? "Yes":"No";
   delete result["isRulePassed"];
   // 1. Required (The same as commonRequired pipeline)
   let resultWOAsteriskAndExperiment = Object.fromEntries(
@@ -986,22 +987,25 @@ function createEESection(result: ResultDict | any, criteria: string) {
 
   // 2. Experiment Group (should display group and courses)
   let resultExperimentGroup = result["ExperimentGroup"];
-  let isExperimentGroupPassed = String(resultExperimentGroup["isRulePassed"]);
+  let isExperimentGroupPassed = resultExperimentGroup["isRulePassed"];
+  let isExperimentGroupPassedTextColor = isExperimentGroupPassed ? "#96ee11" : "#ff5050";
+  let isExperimentGroupPassedText = isExperimentGroupPassed ? "Yes":"No";
+
   delete resultExperimentGroup["isRulePassed"];
 
   // 3. AsteriskRequiredElective (should display category and courses)
   let resultAsteriskRequiredElective = result["AsteriskRequiredElective"];
-  let isAsteriskRequiredElectivePassed = String(
-    resultAsteriskRequiredElective["isRulePassed"]
-  );
+  let isAsteriskRequiredElectivePassed = resultAsteriskRequiredElective["isRulePassed"];
+  let isAsteriskRequiredElectivePassedTextColor = isAsteriskRequiredElectivePassed ? "#96ee11" : "#ff5050";
+  let isAsteriskRequiredElectivePassedText = isAsteriskRequiredElectivePassed ? "Yes":"No";
+
+  
   delete resultAsteriskRequiredElective["isRulePassed"];
 
   let htmlString = `
     <div class="container mt-5">
     <h2 class="mb-4">${criteria}</h2>
-    <h2 style="color: ${textColor}"><strong>Passed: </strong>${String(
-    isRulePassed
-  )}</h2>
+    <h2 style="color: ${isRulePassedTextColor}"><strong>Passed: </strong>${isRulePassedText}</h2>
     <div class="row">
       <div class="row">
         ${Object.entries(resultWOAsteriskAndExperiment)
@@ -1044,7 +1048,7 @@ function createEESection(result: ResultDict | any, criteria: string) {
       </div>
 
       
-      <h2>${isExperimentGroupPassed}</h2>
+      <h2 style="color: ${isExperimentGroupPassedTextColor}" >Experiment Group Cross Category Passed: ${isExperimentGroupPassedText}</h2>
       <div class="row">
         ${Object.entries(resultExperimentGroup)
           .map(
@@ -1084,7 +1088,7 @@ function createEESection(result: ResultDict | any, criteria: string) {
           )
           .join("")}
       </div>
-      <h2>${isAsteriskRequiredElectivePassed}</h2>
+      <h2 style="color: ${isAsteriskRequiredElectivePassedTextColor}">Asterisk Elective Cross Category Passed: ${isAsteriskRequiredElectivePassedText}</h2>
       <div class="row">
         ${Object.entries(resultAsteriskRequiredElective)
           .map(
