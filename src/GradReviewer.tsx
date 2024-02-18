@@ -656,6 +656,7 @@ function reviewEEMajor(
     Object.values(recognizedCategoryDict).filter((value) => value === true)
       .length >= asteriskRequiredElective.crossCategoryRequirement
   ) {
+    console.log("case 1");
     isCrossCategoryPassed = true;
     let EE3001 = courseList.filter((course) => course.courseID === "EE3001");
 
@@ -673,12 +674,11 @@ function reviewEEMajor(
       recognizedCategoryDict.ElectronicsCategory = true;
       criteriaPassedCourses.ElectronicsCategory =
         criteriaPassedCourses.ElectronicsCategory.concat(EE3001);
-    } else if (recognizedCategoryDict.SolidState === false) {
-      recognizedCategoryDict.SolidState = true;
+    } else if (recognizedCategoryDict.SolidStateCategory === false) {
+      recognizedCategoryDict.SolidStateCategory = true;
       criteriaPassedCourses.SolidStateCategory =
         criteriaPassedCourses.SolidStateCategory.concat(EE3001);
     }
-
     // Recheck if cross-category requirement is satisfied after the EE3001 is adaptively assigned.
     if (
       Object.values(recognizedCategoryDict).filter((value) => value === true)
