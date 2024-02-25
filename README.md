@@ -109,19 +109,14 @@ Then you can select a specific graduation rules by years, please refer to the fi
 
 ![LoggedIn](https://i.imgur.com/a8w8SY7.png)
 
+
 ### Step 3
-
-After select a correct year, it will update its review rules automatically, please wait for a second.
-
-![selectedAYear](https://i.imgur.com/tI4CVu5.png)
-
-### Step 4
 
 Once the data is up to date and the review report is generated, you can click the `Download HTML` button to download your report.
 
 ![Download HTML](https://github.com/AlexPeng517/IPEECSGradReviewer/assets/61203384/abb622ec-c820-4857-a214-91a54b97e32d)
 
-### Step 5
+### Step 4
 
 The result report filename will be IPEECS_GradReviewReport_<your_name_in_Chinese>_<your_student_ID>, you can open it by any browser. (If the file is blank, please go to [Portal 成績查詢](https://portal.ncu.edu.tw/system/162) page and try it again.)
 
@@ -131,7 +126,7 @@ The result report filename will be IPEECS_GradReviewReport_<your_name_in_Chinese
 
 # Disclaimer:
 The System Is Design For Your Quick Reference. It Cannot Represent The Official Review Result. 
-Since It Cannot Handle All The Exceptions, If You Are Concerning Any Inaccuracy Of Your Report, Please Contact The IPEECS Department Office. 
+Since The System Cannot Handle All The Exceptions, If You Are Concerning Any Inaccuracy Of Your Report, Please Contact The IPEECS Department Office For Further Confirmation. 
 # Privacy Policy Claim: 
 All The Data Is Processed Automatically And Locally, The Developer Team Will Not Gather Any User Data In Any Way.
 
