@@ -96,9 +96,10 @@ After loaded, type `chrome://restart` in your URL bar to restart Chrome in case 
 
 ### Step 1
 
-If you didn't logged in to NCU Portal first, refer to UI, will guide you to the login page via a link below.
+Please follow the link to [成績查詢](https://portal.ncu.edu.tw/system/162) page and activate the IPEECS Graduation Review Extension
 
-![notLoggedIn](https://i.imgur.com/wTpRZpH.png)
+![image](https://github.com/AlexPeng517/IPEECSGradReviewer/assets/61203384/1a094065-a777-4427-8a5a-1e1daef7ad61)
+
 
 ### Step 2
 
@@ -116,20 +117,22 @@ After select a correct year, it will update its review rules automatically, plea
 
 ### Step 4
 
-Once all data is up to date, you can click the `check` button to start reviewing.
+Once the data is up to date and the review report is generated, you can click the `Download HTML` button to download your report.
 
-When reviewing process ended, you can download the result by clicking the link right beside the `check` button
-
-![checkAndDownload](https://i.imgur.com/iVzl1AK.png)
+![Download HTML](https://github.com/AlexPeng517/IPEECSGradReviewer/assets/61203384/abb622ec-c820-4857-a214-91a54b97e32d)
 
 ### Step 5
 
-The result report filename is validate.html, you can use any browser to open it. (If the file is blank, please go to [Portal 成績查詢](https://portal.ncu.edu.tw/system/162) page and try it again.)
+The result report filename will be IPEECS_GradReviewReport_<your_name_in_Chinese>_<your_student_ID>, you can open it by any browser. (If the file is blank, please go to [Portal 成績查詢](https://portal.ncu.edu.tw/system/162) page and try it again.)
 
-![reportDemo](https://i.imgur.com/ad4rO9p.png)
+![image](https://github.com/AlexPeng517/IPEECSGradReviewer/assets/61203384/a49b62a9-6362-4d04-8e6e-789d0d7a0c07)
+
 
 
 # Disclaimer:
+The System Is Design For Your Quick Reference. It Cannot Represent The Official Review Result. 
+Since It Cannot Handle All The Exceptions, If You Are Concerning Any Inaccuracy Of Your Report, Please Contact The IPEECS Department Office. 
+# Privacy Policy Claim: 
 All The Data Is Processed Automatically And Locally, The Developer Team Will Not Gather Any User Data In Any Way.
 
 
