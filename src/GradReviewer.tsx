@@ -127,9 +127,27 @@ function reviewCreativityAndEntrepreneurship(
   let totalPassedCourses: CriteriaPassedCoursesDict = {};
   let totalCreditRequirement: number = rules["creditRequirement"];
   let totalRecognizedCredits: number = 0;
+  let isRequiredPassed: boolean = false;
+
+  //check if the required courses are passed
+  let requiredCoursesKeywords = rules["required"]["courseKeywords"];
+  let recognizedRequiredCourses = courseList.filter((course) => {
+    return requiredCoursesKeywords
+      .map((keyword: string) => new RegExp(keyword))
+      .some((regex: RegExp) => regex.test(course.courseID));
+  });
+  let recognizedRequiredCredits = recognizedRequiredCourses.reduce(
+    (sum, course) => sum + course.courseCredit,
+    0
+  );
+  if (recognizedRequiredCredits >= rules["required"].creditRequirement) {
+    isRequiredPassed = true;
+  } else {
+    isRequiredPassed = false;
+  }
 
   for (const criteria in rules) {
-    if (criteria === "creditRequirement") continue;
+    if (criteria === "creditRequirement" || criteria === "required") continue;
 
     let criteriaRcognizedCredits: number = 0;
     let ruleCredit: number = rules[criteria].creditRequirement;
@@ -170,8 +188,8 @@ function reviewCreativityAndEntrepreneurship(
       criteriaPassedCourses: totalPassedCourses[criteria],
     };
   }
-
-  if (totalRecognizedCredits >= totalCreditRequirement) {
+  
+  if (totalRecognizedCredits >= totalCreditRequirement && isRequiredPassed) {
     isPassedFlags["CreativityAndEntrepreneurshipProgram"] = true;
   } else {
     isPassedFlags["CreativityAndEntrepreneurshipProgram"] = false;
